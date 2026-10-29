@@ -1,0 +1,148 @@
+{
+  "name": "colorfly",
+  "displayName": "ColorFly — VS Code Theme Studio",
+  "description": "Professional graphical theme studio to customize, preview, and manage VS Code workbench and syntax colors with precision.",
+  "version": "1.0.0",
+  "publisher": "colorfly-studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/colorfly/colorfly"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Themes",
+    "Other"
+  ],
+  "keywords": [
+    "theme",
+    "color",
+    "colorfly",
+    "studio",
+    "customization",
+    "workbench",
+    "syntax",
+    "palette",
+    "preview"
+  ],
+  "main": "./dist/extension.js",
+  "icon": "assets/icon.png",
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "colorfly-activitybar",
+          "title": "ColorFly Theme Studio",
+          "icon": "assets/icons/colorfly-activitybar.svg"
+        }
+      ]
+    },
+    "views": {
+      "colorfly-activitybar": [
+        {
+          "type": "webview",
+          "id": "colorfly.sidebarView",
+          "name": "ColorFly Studio"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "colorfly.openStudio",
+        "title": "ColorFly: Open Theme Studio in Editor",
+        "category": "ColorFly",
+        "icon": "$(layout)"
+      },
+      {
+        "command": "colorfly.openSidebar",
+        "title": "ColorFly: Focus Activity Bar Sidebar",
+        "category": "ColorFly"
+      },
+      {
+        "command": "colorfly.applyCustomizations",
+        "title": "ColorFly: Apply Staged Customizations to VS Code",
+        "category": "ColorFly",
+        "icon": "$(check)"
+      },
+      {
+        "command": "colorfly.resetCustomizations",
+        "title": "ColorFly: Restore Configuration Before Customization",
+        "category": "ColorFly",
+        "icon": "$(discard)"
+      },
+      {
+        "command": "colorfly.exportTheme",
+        "title": "ColorFly: Export Current Theme Profile",
+        "category": "ColorFly",
+        "icon": "$(export)"
+      },
+      {
+        "command": "colorfly.toggleClock",
+        "title": "ColorFly: Toggle Live Clock Widget",
+        "category": "ColorFly",
+        "icon": "$(clock)"
+      }
+    ],
+    "configuration": {
+      "title": "ColorFly",
+      "properties": {
+        "colorfly.showClock": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show a live clock with seconds in the VS Code status bar and Theme Studio header."
+        },
+        "colorfly.clockFormat": {
+          "type": "string",
+          "enum": ["24h", "12h"],
+          "default": "24h",
+          "description": "Format for the ColorFly clock (24-hour vs 12-hour AM/PM)."
+        },
+        "colorfly.clockShowSeconds": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show ticking seconds in the clock."
+        }
+      }
+    },
+    "menus": {
+      "view/title": [
+        {
+          "command": "colorfly.openStudio",
+          "when": "view == colorfly.sidebarView",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run build",
+    "compile:ext": "tsc -p ./tsconfig.json",
+    "build:ext": "tsc -p ./tsconfig.json",
+    "build:ui": "vite build --config vite.config.ts",
+    "build": "npm run build:ui && npm run build:ext",
+    "watch:ext": "tsc -watch -p ./tsconfig.json",
+    "watch:ui": "vite build --watch --config vite.config.ts",
+    "test": "vitest run",
+    "package": "vsce package --no-dependencies"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@types/vscode": "^1.85.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "@vscode/vsce": "^2.24.0",
+    "lucide-react": "^0.395.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.1",
+    "vitest": "^1.6.0"
+  }
+}
+
