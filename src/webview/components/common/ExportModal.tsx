@@ -2,7 +2,7 @@
  * ChromaForge: Export Theme Dialog Modal
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeProfile } from '../../../shared/types';
 import { sendToExtension } from '../../vscodeApi';
 import { CloseIcon, ExportIcon } from './Icons';
@@ -21,8 +21,19 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId || (profiles[0]?.id ?? ''));
   const [format, setFormat] = useState<'theme-json' | 'chromaforge-profile' | 'extension-scaffold'>('theme-json');
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
+  const hasProfiles = profiles.length > 0;
+  const canExport = hasProfiles && !!selectedProfileId;
+
   const handleExport = () => {
-    if (!selectedProfileId) return;
+    if (!canExport) return;
     sendToExtension({
       type: 'EXPORT_PROFILE',
       payload: {
@@ -35,22 +46,37 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal-content"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="cf-export-modal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="modal-header">
-          <h3 style={{ margin: 0, fontSize: 14, color: 'var(--cf-title-fg)' }}>Export Theme or Profile</h3>
-          <button className="btn btn-outline btn-sm" onClick={onClose}>
+          <h3 id="cf-export-modal-title" style={{ margin: 0, fontSize: 14, color: 'var(--cf-title-fg)' }}>
+            Export Theme or Profile
+          </h3>
+          <button className="btn btn-outline btn-sm" onClick={onClose} aria-label="Close export dialog">
             <CloseIcon size={12} />
           </button>
         </div>
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          {!hasProfiles && (
+            <div style={{ fontSize: 12, color: 'var(--cf-desc-fg)', padding: '8px 10px', border: '1px solid var(--cf-border)', borderRadius: 4 }}>
+              No profiles available to export yet. Create or import a profile first.
+            </div>
+          )}
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, display: 'block', marginBottom: 6, color: 'var(--cf-title-fg)' }}>
               Select Profile:
             </label>
             <select
               value={selectedProfileId}
+              disabled={!hasProfiles}
               onChange={(e) => setSelectedProfileId(e.target.value)}
+              aria-label="Profile to export"
               style={{
                 width: '100%',
                 background: 'var(--cf-input-bg)',
@@ -127,7 +153,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
         <div className="modal-footer">
           <button className="btn btn-outline" onClick={onClose}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleExport}>
+          <button className="btn btn-primary" onClick={handleExport} disabled={!canExport}>
             <ExportIcon size={14} />
             <span>Export Theme</span>
           </button>

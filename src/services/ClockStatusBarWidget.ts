@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 export class ClockStatusBarWidget implements vscode.Disposable {
   private statusBarItem: vscode.StatusBarItem;
   private timer: NodeJS.Timeout | null = null;
+  private timerIntervalMs: number | null = null;
   private isDisposed: boolean = false;
 
   constructor() {
@@ -20,16 +21,10 @@ export class ClockStatusBarWidget implements vscode.Disposable {
     this.statusBarItem.tooltip = 'ColorFly Live Clock — Click to open Theme Studio';
 
     this.update();
-    this.startTimer();
   }
 
   public startTimer(): void {
-    if (this.timer) {
-      clearInterval(this.timer);
-    }
-    this.timer = setInterval(() => {
-      this.update();
-    }, 1000);
+    this.update();
   }
 
   public stopTimer(): void {
@@ -37,6 +32,16 @@ export class ClockStatusBarWidget implements vscode.Disposable {
       clearInterval(this.timer);
       this.timer = null;
     }
+    this.timerIntervalMs = null;
+  }
+
+  private ensureTimer(intervalMs: number): void {
+    if (this.timer && this.timerIntervalMs === intervalMs) return;
+    this.stopTimer();
+    this.timer = setInterval(() => {
+      this.update();
+    }, intervalMs);
+    this.timerIntervalMs = intervalMs;
   }
 
   public update(): void {
@@ -47,6 +52,7 @@ export class ClockStatusBarWidget implements vscode.Disposable {
 
     if (!enabled) {
       this.statusBarItem.hide();
+      this.stopTimer();
       return;
     }
 
@@ -85,14 +91,20 @@ export class ClockStatusBarWidget implements vscode.Disposable {
     // Boxed frame presentation
     this.statusBarItem.text = `$(clock) [ ${timeStr} ]`;
     this.statusBarItem.show();
+    this.ensureTimer(showSeconds ? 1000 : 60000);
   }
 
   public async toggle(): Promise<boolean> {
     const config = vscode.workspace.getConfiguration('colorfly');
     const current = config.get<boolean>('showClock', true);
-    await config.update('showClock', !current, vscode.ConfigurationTarget.Global);
+    const inspection = config.inspect<boolean>('showClock');
+    const target = inspection?.workspaceValue !== undefined
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    const next = !current;
+    await config.update('showClock', next, target);
     this.update();
-    return !current;
+    return next;
   }
 
   public dispose(): void {

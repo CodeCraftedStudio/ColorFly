@@ -3,9 +3,17 @@
  * Coordinates studio state, active themes, GUI settings, and RPC communication with Extension Host.
  */
 
-import React, { useState, useEffect } from 'react';
-import { ExtensionStatePayload, ExtensionToWebviewMessage } from '../shared/types';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ExtensionStatePayload, ExtensionToWebviewMessage, WorkbenchCategory } from '../shared/types';
 import { sendToExtension } from './vscodeApi';
+import {
+  GuiLanguage,
+  GuiLanguageSetting,
+  STORAGE_LANG_KEY,
+  LanguageContext,
+  resolveLanguage,
+  translate,
+} from './i18n';
 import { HeaderBar, GuiTheme } from './components/common/HeaderBar';
 import { TabsNav, TabId } from './components/common/TabsNav';
 import { OverviewDashboard } from './components/overview/OverviewDashboard';
@@ -20,7 +28,9 @@ import { ClockStudio } from './components/clock/ClockStudio';
 import { GuiSettings, GuiDensity } from './components/settings/GuiSettings';
 import { ExportModal } from './components/common/ExportModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { SystemLogs } from './components/logs/SystemLogs';
 import { CheckIcon, CloseIcon } from './components/common/Icons';
+import { addLog, mergeLogs, stringifyLogValue, useSystemLogs } from './logStore';
 
 const STORAGE_THEME_KEY = 'colorfly_gui_theme';
 const STORAGE_DENSITY_KEY = 'colorfly_gui_density';
@@ -28,8 +38,45 @@ const STORAGE_ANIM_KEY = 'colorfly_gui_animations';
 const STORAGE_FONT_KEY = 'colorfly_gui_fontsize';
 const STORAGE_HEADER_CLOCK_KEY = 'colorfly_header_clock';
 
+const GUI_THEMES: GuiTheme[] = ['vscode-native', 'dark', 'light', 'pencil-paper', 'animated-hacker'];
+const GUI_DENSITIES: GuiDensity[] = ['compact', 'comfortable', 'relaxed'];
+
+function readStoredTheme(): GuiTheme {
+  const raw = localStorage.getItem(STORAGE_THEME_KEY);
+  return GUI_THEMES.includes(raw as GuiTheme) ? (raw as GuiTheme) : 'vscode-native';
+}
+
+function readStoredDensity(): GuiDensity {
+  const raw = localStorage.getItem(STORAGE_DENSITY_KEY);
+  return GUI_DENSITIES.includes(raw as GuiDensity) ? (raw as GuiDensity) : 'comfortable';
+}
+
+function readStoredBoolean(key: string, fallback: boolean): boolean {
+  const raw = localStorage.getItem(key);
+  if (raw === null) return fallback;
+  return raw === 'true';
+}
+
+function readStoredFontSize(): number {
+  const parsed = parseInt(localStorage.getItem(STORAGE_FONT_KEY) || '', 10);
+  if (Number.isNaN(parsed)) return 13;
+  return Math.min(18, Math.max(11, parsed));
+}
+
+const GUI_LANGUAGE_SETTINGS: GuiLanguageSetting[] = ['auto', 'en', 'bn', 'hi'];
+
+function readStoredLanguage(): GuiLanguageSetting {
+  const raw = localStorage.getItem(STORAGE_LANG_KEY);
+  return GUI_LANGUAGE_SETTINGS.includes(raw as GuiLanguageSetting)
+    ? (raw as GuiLanguageSetting)
+    : 'auto';
+}
+
 export const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+  const [workbenchCategory, setWorkbenchCategory] = useState<WorkbenchCategory | 'all'>('all');
+  const systemLogs = useSystemLogs();
+  const errorCount = systemLogs.reduce((total, entry) => (entry.level === 'error' ? total + 1 : total), 0);
   const [state, setState] = useState<ExtensionStatePayload>({
     activeThemeId: 'Default Dark+',
     activeThemeName: 'Default Dark+',
@@ -39,6 +86,7 @@ export const App: React.FC = () => {
     effectiveColors: {},
     stagedColors: {},
     stagedTokenColors: {},
+    stagedTextMateRules: [],
     stagedSemanticTokens: {},
     savedProfiles: [],
     hasUnappliedDrafts: false,
@@ -46,28 +94,31 @@ export const App: React.FC = () => {
   });
 
   // GUI Preferences
-  const [guiTheme, setGuiTheme] = useState<GuiTheme>(() => {
-    return (localStorage.getItem(STORAGE_THEME_KEY) as GuiTheme) || 'vscode-native';
-  });
+  const [guiTheme, setGuiTheme] = useState<GuiTheme>(readStoredTheme);
+  const [density, setDensity] = useState<GuiDensity>(readStoredDensity);
+  const [animationsEnabled, setAnimationsEnabled] = useState<boolean>(() =>
+    readStoredBoolean(STORAGE_ANIM_KEY, true)
+  );
+  const [fontSize, setFontSize] = useState<number>(readStoredFontSize);
+  const [headerClockEnabled, setHeaderClockEnabled] = useState<boolean>(() =>
+    readStoredBoolean(STORAGE_HEADER_CLOCK_KEY, true)
+  );
+  const [languageSetting, setLanguageSetting] = useState<GuiLanguageSetting>(readStoredLanguage);
 
-  const [density, setDensity] = useState<GuiDensity>(() => {
-    return (localStorage.getItem(STORAGE_DENSITY_KEY) as GuiDensity) || 'comfortable';
-  });
+  const lang: GuiLanguage = resolveLanguage(languageSetting);
+  const t = useCallback(
+    (key: string, vars?: Record<string, string | number>) => translate(lang, key, vars),
+    [lang]
+  );
 
-  const [animationsEnabled, setAnimationsEnabled] = useState<boolean>(() => {
-    const val = localStorage.getItem(STORAGE_ANIM_KEY);
-    return val !== null ? val === 'true' : true;
-  });
+  const handleLanguageChange = (setting: GuiLanguageSetting) => {
+    setLanguageSetting(setting);
+    localStorage.setItem(STORAGE_LANG_KEY, setting);
+  };
 
-  const [fontSize, setFontSize] = useState<number>(() => {
-    const val = localStorage.getItem(STORAGE_FONT_KEY);
-    return val ? parseInt(val, 10) : 13;
-  });
-
-  const [headerClockEnabled, setHeaderClockEnabled] = useState<boolean>(() => {
-    const val = localStorage.getItem(STORAGE_HEADER_CLOCK_KEY);
-    return val !== null ? val === 'true' : true;
-  });
+  useEffect(() => {
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const handleToggleHeaderClock = (enabled: boolean) => {
     setHeaderClockEnabled(enabled);
@@ -76,6 +127,18 @@ export const App: React.FC = () => {
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const toastTimerRef = useRef<number | undefined>(undefined);
+
+  const showToast = (text: string, type: 'success' | 'error', durationMs: number) => {
+    setToastMessage({ text, type });
+    if (toastTimerRef.current) {
+      window.clearTimeout(toastTimerRef.current);
+    }
+    toastTimerRef.current = window.setTimeout(() => {
+      setToastMessage(null);
+      toastTimerRef.current = undefined;
+    }, durationMs);
+  };
 
   // Persistence handlers
   const handleThemeChange = (theme: GuiTheme) => {
@@ -103,8 +166,9 @@ export const App: React.FC = () => {
     handleDensityChange('comfortable');
     handleToggleAnimations(true);
     handleFontSizeChange(13);
-    setToastMessage({ text: 'Studio settings restored to factory defaults.', type: 'success' });
-    setTimeout(() => setToastMessage(null), 3000);
+    handleToggleHeaderClock(true);
+    handleLanguageChange('auto');
+    showToast(t('toast.settingsReset'), 'success', 3000);
   };
 
   useEffect(() => {
@@ -121,26 +185,67 @@ export const App: React.FC = () => {
           break;
         }
         case 'OPERATION_SUCCESS': {
-          setToastMessage({ text: message.payload.message, type: 'success' });
-          setTimeout(() => setToastMessage(null), 3000);
+          showToast(message.payload.message, 'success', 3000);
+          addLog({ level: 'info', source: 'extension-host', message: message.payload.message, detail: message.payload.details });
           break;
         }
         case 'OPERATION_ERROR': {
-          setToastMessage({ text: message.payload.message, type: 'error' });
-          setTimeout(() => setToastMessage(null), 4000);
+          showToast(message.payload.message, 'error', 4000);
+          break;
+        }
+        case 'SYSTEM_LOG': {
+          mergeLogs([message.payload]);
+          break;
+        }
+        case 'SYSTEM_LOGS_SYNC': {
+          mergeLogs(message.payload.entries);
           break;
         }
       }
     };
 
+    const handleRuntimeError = (event: ErrorEvent) => {
+      addLog({
+        level: 'error',
+        source: 'window',
+        message: event.message || 'Unknown runtime error',
+        detail: event.filename
+          ? `${event.filename}:${event.lineno}:${event.colno}${event.error?.stack ? `\n${event.error.stack}` : ''}`
+          : stringifyLogValue(event.error),
+      });
+    };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      addLog({
+        level: 'error',
+        source: 'window',
+        message: 'Unhandled promise rejection',
+        detail: stringifyLogValue(event.reason),
+      });
+    };
+
     window.addEventListener('message', handleMessage);
-    return () => window.removeEventListener('message', handleMessage);
+    window.addEventListener('error', handleRuntimeError);
+    window.addEventListener('unhandledrejection', handleRejection);
+    return () => {
+      window.removeEventListener('message', handleMessage);
+      window.removeEventListener('error', handleRuntimeError);
+      window.removeEventListener('unhandledrejection', handleRejection);
+      if (toastTimerRef.current) {
+        window.clearTimeout(toastTimerRef.current);
+      }
+    };
   }, []);
 
   const activeProfile = state.savedProfiles.find((p) => p.id === state.activeProfileId);
-  const draftCount = Object.keys(state.stagedColors).length + Object.keys(state.stagedTokenColors).length;
+  const draftCount =
+    Object.keys(state.stagedColors).length +
+    Object.keys(state.stagedTokenColors).length +
+    (state.stagedTextMateRules?.length || 0) +
+    Object.keys(state.stagedSemanticTokens || {}).length;
 
   return (
+    <LanguageContext.Provider value={{ lang, setting: languageSetting, setSetting: handleLanguageChange, t }}>
     <div
       className="app-container"
       data-gui-theme={guiTheme}
@@ -151,6 +256,8 @@ export const App: React.FC = () => {
       {/* Toast Notification Banner */}
       {toastMessage && (
         <div
+          role="status"
+          aria-live="polite"
           style={{
             position: 'fixed',
             top: 14,
@@ -197,6 +304,7 @@ export const App: React.FC = () => {
         activeTab={activeTab}
         onChangeTab={setActiveTab}
         draftCount={draftCount}
+        errorCount={errorCount}
       />
 
       {/* Main Studio Viewport with Error Boundary */}
@@ -211,6 +319,10 @@ export const App: React.FC = () => {
               stagedColors={state.stagedColors}
               savedProfiles={state.savedProfiles}
               onNavigateTab={setActiveTab}
+              onNavigateToCategory={(cat) => {
+                setWorkbenchCategory(cat);
+                setActiveTab('workbench');
+              }}
               onOpenExportModal={() => setShowExportModal(true)}
             />
           )}
@@ -219,6 +331,7 @@ export const App: React.FC = () => {
             <WorkbenchColorCatalog
               effectiveColors={state.effectiveColors}
               stagedColors={state.stagedColors}
+              initialCategory={workbenchCategory}
             />
           )}
 
@@ -228,6 +341,7 @@ export const App: React.FC = () => {
             <SyntaxHighlightingEditor
               stagedTokenColors={state.stagedTokenColors as Record<string, string>}
               stagedSemanticTokens={state.stagedSemanticTokens}
+              stagedTextMateRules={state.stagedTextMateRules}
             />
           )}
 
@@ -286,8 +400,12 @@ export const App: React.FC = () => {
               clockConfig={state.clockConfig}
               headerClockEnabled={headerClockEnabled}
               onToggleHeaderClock={handleToggleHeaderClock}
+              languageSetting={languageSetting}
+              onChangeLanguage={handleLanguageChange}
             />
           )}
+
+          {activeTab === 'logs' && <SystemLogs />}
         </ErrorBoundary>
       </main>
 
@@ -300,5 +418,6 @@ export const App: React.FC = () => {
         />
       )}
     </div>
+    </LanguageContext.Provider>
   );
 };

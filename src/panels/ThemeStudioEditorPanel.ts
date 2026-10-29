@@ -5,8 +5,6 @@
  */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
-import * as fs from 'fs';
 import {
   ColorScope,
   ExtensionStatePayload,
@@ -14,10 +12,18 @@ import {
   ThemeProfile,
   WebviewToExtensionMessage,
 } from '../shared/types';
+import { isValidColor } from '../shared/colorUtils';
 import { ConfigurationService } from '../services/ConfigurationService';
 import { ProfileService } from '../services/ProfileService';
 import { RecoveryService } from '../services/RecoveryService';
 import { ThemeExportService } from '../services/ThemeExportService';
+import {
+  SystemLogService,
+  formatErrorDetail,
+  formatErrorMessage,
+} from '../services/SystemLogService';
+import { OFFICIAL_WORKBENCH_COLORS } from '../shared/officialWorkbenchColors';
+import { writeThemeScaffold } from '../services/ThemeScaffoldWriter';
 
 export class ThemeStudioEditorPanel {
   public static currentPanel: ThemeStudioEditorPanel | undefined;
@@ -39,13 +45,21 @@ export class ThemeStudioEditorPanel {
     extensionUri: vscode.Uri,
     private configService: ConfigurationService,
     private profileService: ProfileService,
-    private recoveryService: RecoveryService
+    private recoveryService: RecoveryService,
+    private readonly systemLogService: SystemLogService
   ) {
     this.panel = panel;
     this.extensionUri = extensionUri;
 
     // Set webview initial HTML content
     this.updateWebviewContent();
+
+    // Forward every captured system log entry to the open webview
+    this.disposables.push(
+      this.systemLogService.onDidLog((entry) => {
+        this.sendMessage({ type: 'SYSTEM_LOG', payload: entry });
+      })
+    );
 
     // Handle messages sent from the webview
     this.panel.webview.onDidReceiveMessage(
@@ -87,7 +101,8 @@ export class ThemeStudioEditorPanel {
     extensionUri: vscode.Uri,
     configService: ConfigurationService,
     privateProfileService: ProfileService,
-    recoveryService: RecoveryService
+    recoveryService: RecoveryService,
+    systemLogService: SystemLogService
   ): ThemeStudioEditorPanel {
     const column = vscode.window.activeTextEditor
       ? vscode.window.activeTextEditor.viewColumn
@@ -125,7 +140,8 @@ export class ThemeStudioEditorPanel {
       extensionUri,
       configService,
       privateProfileService,
-      recoveryService
+      recoveryService,
+      systemLogService
     );
 
     return ThemeStudioEditorPanel.currentPanel;
@@ -135,6 +151,10 @@ export class ThemeStudioEditorPanel {
     try {
       switch (message.type) {
         case 'READY': {
+          this.sendMessage({
+            type: 'SYSTEM_LOGS_SYNC',
+            payload: { entries: this.systemLogService.getEntries() },
+          });
           this.broadcastState();
           break;
         }
@@ -159,6 +179,22 @@ export class ThemeStudioEditorPanel {
           break;
         }
 
+        case 'STAGE_COLOR_BATCH': {
+          const batchEntries = Object.entries(message.payload.colors || {});
+          for (const [id, value] of batchEntries) {
+            const prevVal = this.stagedColors[id];
+            this.stagedColors[id] = value;
+            this.recoveryService.recordChange({
+              type: 'color',
+              key: id,
+              previousValue: prevVal,
+              newValue: value,
+            });
+          }
+          this.broadcastState();
+          break;
+        }
+
         case 'RESET_COLOR': {
           const { id } = message.payload;
           delete this.stagedColors[id];
@@ -170,21 +206,37 @@ export class ThemeStudioEditorPanel {
 
         case 'RESET_CATEGORY': {
           const { category } = message.payload;
-          // Clean staged colors in that category
-          const toRemove: string[] = [];
+          const activeTheme = this.getActiveThemeName();
+          const categoryIds = OFFICIAL_WORKBENCH_COLORS.filter(
+            (color) => color.category === category
+          ).map((color) => color.id);
+          const idSet = new Set(categoryIds);
+
           for (const key of Object.keys(this.stagedColors)) {
-            if (key.toLowerCase().startsWith(category.toLowerCase())) {
-              toRemove.push(key);
-            }
+            if (idSet.has(key)) delete this.stagedColors[key];
           }
-          toRemove.forEach((k) => delete this.stagedColors[k]);
+
+          const effective = this.configService.getEffectiveWorkbenchColors(activeTheme, this.currentScope);
+          const dirtyIds = categoryIds.filter((id) => effective[id] !== undefined);
+          for (const id of dirtyIds) {
+            await this.configService.resetProperty(id, activeTheme, this.currentScope);
+          }
+
+          this.systemLogService.info(
+            'extension-host',
+            `Reset category "${category}" (${dirtyIds.length} applied colors reverted, drafts cleared)`
+          );
           this.broadcastState();
           break;
         }
 
         case 'STAGE_TOKEN_COLOR': {
           const { key, value } = message.payload;
-          this.stagedTokenColors[key] = value;
+          if (!value) {
+            delete this.stagedTokenColors[key];
+          } else {
+            this.stagedTokenColors[key] = value;
+          }
           this.broadcastState();
           break;
         }
@@ -196,68 +248,18 @@ export class ThemeStudioEditorPanel {
         }
 
         case 'UPDATE_SEMANTIC_TOKENS': {
-          this.stagedSemanticTokens = message.payload.tokens;
+          const cleanedTokens: Record<string, any> = {};
+          for (const [tokenKey, tokenValue] of Object.entries(message.payload.tokens || {})) {
+            if (tokenValue === '' || tokenValue === null || tokenValue === undefined) continue;
+            cleanedTokens[tokenKey] = tokenValue;
+          }
+          this.stagedSemanticTokens = cleanedTokens;
           this.broadcastState();
           break;
         }
 
         case 'APPLY_CUSTOMIZATIONS': {
-          const activeTheme = this.getActiveThemeName();
-
-          // Ensure snapshot is captured prior to first write
-          const snapshot = this.configService.createSnapshot(
-            'Before ChromaForge Customization',
-            this.currentScope,
-            activeTheme
-          );
-          this.recoveryService.setInitialSnapshot(snapshot);
-
-          // Apply workbench colors
-          if (Object.keys(this.stagedColors).length > 0) {
-            await this.configService.applyWorkbenchColors(
-              this.stagedColors,
-              activeTheme,
-              this.currentScope,
-              message.payload.themeScoped
-            );
-          }
-
-          // Apply token colors
-          if (
-            Object.keys(this.stagedTokenColors).length > 0 ||
-            this.stagedTextMateRules.length > 0
-          ) {
-            await this.configService.applyTokenColors(
-              this.stagedTokenColors,
-              this.stagedTextMateRules,
-              activeTheme,
-              this.currentScope,
-              message.payload.themeScoped
-            );
-          }
-
-          // Apply semantic tokens
-          if (Object.keys(this.stagedSemanticTokens).length > 0) {
-            await this.configService.applySemanticTokens(
-              this.stagedSemanticTokens,
-              activeTheme,
-              this.currentScope,
-              message.payload.themeScoped
-            );
-          }
-
-          // Clear staged drafts once successfully applied
-          this.stagedColors = {};
-          this.stagedTokenColors = {};
-          this.stagedTextMateRules = [];
-          this.stagedSemanticTokens = {};
-
-          this.sendMessage({
-            type: 'OPERATION_SUCCESS',
-            payload: { message: 'Customizations applied to VS Code successfully!' },
-          });
-          vscode.window.showInformationMessage('ColorFly: Theme customizations applied successfully.');
-          this.broadcastState();
+          await this.applyStagedCustomizations(message.payload.themeScoped);
           break;
         }
 
@@ -306,12 +308,16 @@ export class ThemeStudioEditorPanel {
         case 'LOAD_PROFILE': {
           const profile = this.profileService.getProfile(message.payload.profileId);
           if (!profile) {
+            this.systemLogService.warn('extension-host', `Profile ${message.payload.profileId} not found.`);
             vscode.window.showErrorMessage(`Profile ${message.payload.profileId} not found.`);
             return;
           }
 
           this.activeProfileId = profile.id;
           this.stagedColors = { ...profile.workbenchColors };
+          this.stagedTokenColors = {};
+          this.stagedTextMateRules = [];
+          this.stagedSemanticTokens = {};
           if (profile.tokenColors) {
             const { textMateRules, ...catColors } = profile.tokenColors;
             this.stagedTokenColors = { ...(catColors as Record<string, string>) };
@@ -332,9 +338,13 @@ export class ThemeStudioEditorPanel {
             if (Object.keys(this.stagedTokenColors).length > 0 || this.stagedTextMateRules.length > 0) {
               await this.configService.applyTokenColors(this.stagedTokenColors, this.stagedTextMateRules, activeTheme, this.currentScope, true);
             }
+            if (Object.keys(this.stagedSemanticTokens).length > 0) {
+              await this.configService.applySemanticTokens(this.stagedSemanticTokens, activeTheme, this.currentScope, true);
+            }
             this.stagedColors = {};
             this.stagedTokenColors = {};
             this.stagedTextMateRules = [];
+            this.stagedSemanticTokens = {};
           }
 
           this.broadcastState();
@@ -369,6 +379,7 @@ export class ThemeStudioEditorPanel {
               payload: { message: `Imported profile "${res.profile.name}" successfully!` },
             });
           } else {
+            this.systemLogService.error('extension-host', 'Failed to import profile', res.error);
             this.sendMessage({
               type: 'OPERATION_ERROR',
               payload: { message: 'Failed to import profile', error: res.error },
@@ -380,9 +391,15 @@ export class ThemeStudioEditorPanel {
 
         case 'EXPORT_PROFILE': {
           const profile = this.profileService.getProfile(message.payload.profileId);
-          if (!profile) return;
+          if (!profile) {
+            this.systemLogService.warn('extension-host', `Export skipped: profile ${message.payload.profileId} not found.`);
+            return;
+          }
 
-          if (message.payload.format === 'colorfly-profile') {
+          if (
+            message.payload.format === 'colorfly-profile' ||
+            message.payload.format === 'chromaforge-profile'
+          ) {
             const json = this.profileService.exportProfileJson(profile.id);
             if (json) {
               const doc = await vscode.workspace.openTextDocument({
@@ -390,6 +407,9 @@ export class ThemeStudioEditorPanel {
                 language: 'json',
               });
               await vscode.window.showTextDocument(doc);
+            } else {
+              this.systemLogService.warn('extension-host', `Profile ${profile.id} could not be serialized for export.`);
+              vscode.window.showErrorMessage('ColorFly: Failed to serialize profile for export.');
             }
           } else if (message.payload.format === 'theme-json') {
             const themeJson = ThemeExportService.toVSCodeThemeJson(profile);
@@ -400,24 +420,22 @@ export class ThemeStudioEditorPanel {
             await vscode.window.showTextDocument(doc);
           } else if (message.payload.format === 'extension-scaffold') {
             const scaffold = ThemeExportService.scaffoldThemeExtension(profile);
-            // If a workspace folder is open, ask user if they want to write the folder
             const ws = vscode.workspace.workspaceFolders?.[0];
             if (ws) {
-              const targetDir = path.join(ws.uri.fsPath, scaffold.extensionName);
-              if (!fs.existsSync(targetDir)) {
-                fs.mkdirSync(targetDir, { recursive: true });
+              try {
+                const targetDir = await writeThemeScaffold(scaffold, ws.uri);
+                vscode.window.showInformationMessage(
+                  `ColorFly: Theme extension scaffold created in ./${scaffold.extensionName}`
+                );
+                this.systemLogService.info('extension-host', `Scaffold written to ${targetDir.fsPath}`);
+              } catch (err: any) {
+                if (err?.message === 'Scaffold export cancelled.') {
+                  vscode.window.showInformationMessage('ColorFly: Scaffold export cancelled.');
+                } else {
+                  throw err;
+                }
               }
-              for (const [relPath, content] of Object.entries(scaffold.files)) {
-                const fullPath = path.join(targetDir, relPath);
-                const dir = path.dirname(fullPath);
-                if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-                fs.writeFileSync(fullPath, content, 'utf8');
-              }
-              vscode.window.showInformationMessage(
-                `ColorFly: Theme extension scaffold created in ./${scaffold.extensionName}`
-              );
             } else {
-              // Open package.json in editor as sample
               const doc = await vscode.workspace.openTextDocument({
                 content: scaffold.files['package.json'],
                 language: 'json',
@@ -434,7 +452,28 @@ export class ThemeStudioEditorPanel {
         case 'RAW_CONFIG_APPLY': {
           try {
             const parsed = JSON.parse(message.payload.json);
+            if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+              throw new Error('Raw configuration must be a JSON object mapping color IDs to color values.');
+            }
+            const nonColorKeys = Object.entries(parsed)
+              .filter(([, value]) => typeof value !== 'string' || !isValidColor(String(value)))
+              .map(([key]) => key);
+            if (nonColorKeys.length > 0) {
+              this.systemLogService.warn(
+                'extension-host',
+                `Raw configuration contains ${nonColorKeys.length} non-standard value(s)`,
+                nonColorKeys.slice(0, 20).join(', ')
+              );
+            }
+
             const activeTheme = this.getActiveThemeName();
+            const snapshot = this.configService.createSnapshot(
+              'Before Raw Configuration Apply',
+              this.currentScope,
+              activeTheme
+            );
+            this.recoveryService.setInitialSnapshot(snapshot);
+
             await this.configService.applyWorkbenchColors(
               parsed,
               activeTheme,
@@ -444,33 +483,129 @@ export class ThemeStudioEditorPanel {
             this.broadcastState();
             vscode.window.showInformationMessage('ColorFly: Raw configuration applied.');
           } catch (err: any) {
-            vscode.window.showErrorMessage(`Invalid JSON: ${err?.message || err}`);
+            const errMsg = `Invalid configuration: ${err?.message || err}`;
+            this.systemLogService.error('extension-host', errMsg, formatErrorDetail(err));
+            vscode.window.showErrorMessage(errMsg);
+            this.sendMessage({
+              type: 'OPERATION_ERROR',
+              payload: { message: errMsg },
+            });
           }
           break;
         }
 
         case 'UPDATE_CLOCK_CONFIG': {
           const config = vscode.workspace.getConfiguration('colorfly');
+          const resolveTarget = (key: string): vscode.ConfigurationTarget => {
+            const inspection = config.inspect(key);
+            return inspection?.workspaceValue !== undefined
+              ? vscode.ConfigurationTarget.Workspace
+              : vscode.ConfigurationTarget.Global;
+          };
           if (message.payload.showClock !== undefined) {
-            await config.update('showClock', message.payload.showClock, vscode.ConfigurationTarget.Global);
+            await config.update('showClock', message.payload.showClock, resolveTarget('showClock'));
           }
           if (message.payload.clockFormat !== undefined) {
-            await config.update('clockFormat', message.payload.clockFormat, vscode.ConfigurationTarget.Global);
+            await config.update('clockFormat', message.payload.clockFormat, resolveTarget('clockFormat'));
           }
           if (message.payload.clockShowSeconds !== undefined) {
-            await config.update('clockShowSeconds', message.payload.clockShowSeconds, vscode.ConfigurationTarget.Global);
+            await config.update(
+              'clockShowSeconds',
+              message.payload.clockShowSeconds,
+              resolveTarget('clockShowSeconds')
+            );
           }
           this.broadcastState();
           break;
         }
       }
     } catch (err: any) {
-      vscode.window.showErrorMessage(`ColorFly Error: ${err?.message || err}`);
+      const message = formatErrorMessage(err);
+      this.systemLogService.error('extension-host', message, formatErrorDetail(err));
+      vscode.window.showErrorMessage(`ColorFly Error: ${message}`);
       this.sendMessage({
         type: 'OPERATION_ERROR',
-        payload: { message: err?.message || 'Operation failed' },
+        payload: { message },
       });
     }
+  }
+
+  public async applyStagedCustomizations(themeScoped: boolean): Promise<boolean> {
+    const hasDrafts =
+      Object.keys(this.stagedColors).length > 0 ||
+      Object.keys(this.stagedTokenColors).length > 0 ||
+      this.stagedTextMateRules.length > 0 ||
+      Object.keys(this.stagedSemanticTokens).length > 0;
+
+    if (!hasDrafts) {
+      this.sendMessage({
+        type: 'OPERATION_ERROR',
+        payload: { message: 'No staged changes to apply.' },
+      });
+      vscode.window.showInformationMessage('ColorFly: No staged changes to apply.');
+      return false;
+    }
+
+    const activeTheme = this.getActiveThemeName();
+    const snapshot = this.configService.createSnapshot(
+      'Before ChromaForge Customization',
+      this.currentScope,
+      activeTheme
+    );
+    this.recoveryService.setInitialSnapshot(snapshot);
+
+    if (Object.keys(this.stagedColors).length > 0) {
+      await this.configService.applyWorkbenchColors(
+        this.stagedColors,
+        activeTheme,
+        this.currentScope,
+        themeScoped
+      );
+    }
+
+    if (Object.keys(this.stagedTokenColors).length > 0 || this.stagedTextMateRules.length > 0) {
+      await this.configService.applyTokenColors(
+        this.stagedTokenColors,
+        this.stagedTextMateRules,
+        activeTheme,
+        this.currentScope,
+        themeScoped
+      );
+    }
+
+    if (Object.keys(this.stagedSemanticTokens).length > 0) {
+      await this.configService.applySemanticTokens(
+        this.stagedSemanticTokens,
+        activeTheme,
+        this.currentScope,
+        themeScoped
+      );
+    }
+
+    this.stagedColors = {};
+    this.stagedTokenColors = {};
+    this.stagedTextMateRules = [];
+    this.stagedSemanticTokens = {};
+
+    this.systemLogService.info(
+      'extension-host',
+      `Applied staged customizations to "${activeTheme}" (${themeScoped ? 'theme-scoped' : 'global'})`
+    );
+    this.sendMessage({
+      type: 'OPERATION_SUCCESS',
+      payload: { message: 'Customizations applied to VS Code successfully!' },
+    });
+    vscode.window.showInformationMessage('ColorFly: Theme customizations applied successfully.');
+    this.broadcastState();
+    return true;
+  }
+
+  public clearStagedDrafts(): void {
+    this.stagedColors = {};
+    this.stagedTokenColors = {};
+    this.stagedTextMateRules = [];
+    this.stagedSemanticTokens = {};
+    this.broadcastState();
   }
 
   public broadcastState(): void {
@@ -507,6 +642,7 @@ export class ThemeStudioEditorPanel {
       effectiveColors: effective,
       stagedColors: this.stagedColors,
       stagedTokenColors: this.stagedTokenColors,
+      stagedTextMateRules: this.stagedTextMateRules,
       stagedSemanticTokens: this.stagedSemanticTokens,
       savedProfiles: this.profileService.getProfiles(),
       activeProfileId: this.activeProfileId,

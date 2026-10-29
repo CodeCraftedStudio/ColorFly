@@ -10,9 +10,14 @@ import { ProfileService } from './services/ProfileService';
 import { RecoveryService } from './services/RecoveryService';
 import { ThemeStudioSidebarProvider } from './views/ThemeStudioSidebarProvider';
 import { ClockStatusBarWidget } from './services/ClockStatusBarWidget';
+import { SystemLogService } from './services/SystemLogService';
 import { registerCommands } from './commands';
 
 export function activate(context: vscode.ExtensionContext): void {
+  // 0. Initialize System Log Capture
+  const systemLogService = new SystemLogService();
+  systemLogService.info('extension-host', 'ColorFly extension activated');
+
   // 1. Initialize Core Services
   const configAccessor = new VSCodeConfigAccessor();
   const configService = new ConfigurationService(configAccessor);
@@ -65,7 +70,7 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   // 3. Register All Extension Commands
-  registerCommands(context, configService, profileService, recoveryService);
+  registerCommands(context, configService, profileService, recoveryService, systemLogService);
 }
 
 export function deactivate(): void {

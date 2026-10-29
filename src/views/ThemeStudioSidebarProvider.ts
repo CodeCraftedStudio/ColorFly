@@ -11,6 +11,8 @@ import { ProfileService } from '../services/ProfileService';
 export class ThemeStudioSidebarProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'colorfly.sidebarView';
   private view?: vscode.WebviewView;
+  private disposables: vscode.Disposable[] = [];
+  private refreshTimer: NodeJS.Timeout | null = null;
 
   constructor(
     private readonly extensionUri: vscode.Uri,
@@ -24,6 +26,13 @@ export class ThemeStudioSidebarProvider implements vscode.WebviewViewProvider {
     _token: vscode.CancellationToken
   ): void {
     this.view = webviewView;
+    this.clearDisposables();
+
+    webviewView.onDidDispose(() => {
+      this.view = undefined;
+      this.clearDisposables();
+      this.clearRefreshTimer();
+    });
 
     webviewView.webview.options = {
       enableScripts: true,
@@ -70,14 +79,46 @@ export class ThemeStudioSidebarProvider implements vscode.WebviewViewProvider {
     });
 
     // Listen for theme and configuration changes to refresh the sidebar
-    vscode.window.onDidChangeActiveColorTheme(() => this.refresh());
-    vscode.workspace.onDidChangeConfiguration(() => this.refresh());
+    this.disposables.push(
+      vscode.window.onDidChangeActiveColorTheme(() => this.refresh()),
+      vscode.workspace.onDidChangeConfiguration((e) => {
+        if (
+          e.affectsConfiguration('workbench.colorCustomizations') ||
+          e.affectsConfiguration('editor.tokenColorCustomizations') ||
+          e.affectsConfiguration('editor.semanticTokenColorCustomizations') ||
+          e.affectsConfiguration('colorfly')
+        ) {
+          this.refresh();
+        }
+      }),
+      webviewView.onDidChangeVisibility(() => {
+        if (webviewView.visible) this.refresh();
+      })
+    );
+  }
+
+  private clearDisposables(): void {
+    while (this.disposables.length) {
+      const disposable = this.disposables.pop();
+      disposable?.dispose();
+    }
+  }
+
+  private clearRefreshTimer(): void {
+    if (this.refreshTimer) {
+      clearTimeout(this.refreshTimer);
+      this.refreshTimer = null;
+    }
   }
 
   public refresh(): void {
-    if (this.view) {
-      this.view.webview.html = this.getHtmlForWebview(this.view.webview);
-    }
+    this.clearRefreshTimer();
+    this.refreshTimer = setTimeout(() => {
+      this.refreshTimer = null;
+      if (this.view && this.view.visible) {
+        this.view.webview.html = this.getHtmlForWebview(this.view.webview);
+      }
+    }, 150);
   }
 
   private getHtmlForWebview(webview: vscode.Webview): string {
@@ -86,10 +127,10 @@ export class ThemeStudioSidebarProvider implements vscode.WebviewViewProvider {
     const profiles = this.profileService.getProfiles();
     const customCount = Object.keys(effective).length;
 
-    const editorBg = effective['editor.background'] || '#1e1e1e';
-    const activityBg = effective['activityBar.background'] || '#333333';
-    const sidebarBg = effective['sideBar.background'] || '#252526';
-    const statusBg = effective['statusBar.background'] || '#007acc';
+    const editorBg = safeCssColor(effective['editor.background'], '#1e1e1e');
+    const activityBg = safeCssColor(effective['activityBar.background'], '#333333');
+    const sidebarBg = safeCssColor(effective['sideBar.background'], '#252526');
+    const statusBg = safeCssColor(effective['statusBar.background'], '#007acc');
 
     const presetsOptions = profiles
       .map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`)
@@ -342,5 +383,13 @@ function escapeHtml(text: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#039;');
+}
+
+const CSS_COLOR_PATTERN = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|hsla?\([^)]*\))$/;
+
+function safeCssColor(value: string | undefined, fallback: string): string {
+  if (!value) return fallback;
+  const trimmed = value.trim();
+  return CSS_COLOR_PATTERN.test(trimmed) ? trimmed : fallback;
 }
 

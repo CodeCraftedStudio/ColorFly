@@ -121,6 +121,21 @@ export interface ThemeDiagnostics {
 }
 
 /**
+ * System Log Capture
+ */
+
+export type SystemLogLevel = 'error' | 'warn' | 'info';
+
+export interface SystemLogEntry {
+  id: string;
+  timestamp: string;
+  level: SystemLogLevel;
+  source: string;
+  message: string;
+  detail?: string;
+}
+
+/**
  * Extension Host <-> Webview RPC Messages
  */
 
@@ -128,7 +143,9 @@ export type ExtensionToWebviewMessage =
   | { type: 'STATE_UPDATE'; payload: ExtensionStatePayload }
   | { type: 'OPERATION_SUCCESS'; payload: { message: string; details?: string } }
   | { type: 'OPERATION_ERROR'; payload: { message: string; error?: string } }
-  | { type: 'THEME_EXPORTED'; payload: { type: 'json' | 'extension'; path?: string; content?: string } };
+  | { type: 'THEME_EXPORTED'; payload: { type: 'json' | 'extension'; path?: string; content?: string } }
+  | { type: 'SYSTEM_LOG'; payload: SystemLogEntry }
+  | { type: 'SYSTEM_LOGS_SYNC'; payload: { entries: SystemLogEntry[] } };
 
 export interface ExtensionStatePayload {
   activeThemeId: string;
@@ -153,6 +170,7 @@ export interface ExtensionStatePayload {
     punctuation?: string;
     textMateRules?: TextMateTokenRule[];
   };
+  stagedTextMateRules: TextMateTokenRule[];
   stagedSemanticTokens: Record<string, any>;
   savedProfiles: ThemeProfile[];
   activeProfileId?: string;
@@ -170,6 +188,7 @@ export type WebviewToExtensionMessage =
   | { type: 'READY' }
   | { type: 'SET_SCOPE'; payload: { scope: ColorScope } }
   | { type: 'STAGE_COLOR_CHANGE'; payload: { id: string; value: string } }
+  | { type: 'STAGE_COLOR_BATCH'; payload: { colors: Record<string, string> } }
   | { type: 'RESET_COLOR'; payload: { id: string } }
   | { type: 'RESET_CATEGORY'; payload: { category: WorkbenchCategory } }
   | { type: 'STAGE_TOKEN_COLOR'; payload: { key: string; value: string } }

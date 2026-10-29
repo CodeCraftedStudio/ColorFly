@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ProfileService, IProfileStorage } from '../src/services/ProfileService';
 import { ThemeProfile } from '../src/shared/types';
+import { STARTER_PRESETS } from '../src/shared/starterPresets';
+
+const STORAGE_KEY = 'colorfly.savedProfiles.v1';
 
 class MockProfileStorage implements IProfileStorage {
   private store: Record<string, any> = {};
@@ -87,6 +90,79 @@ describe('ProfileService', () => {
     expect(exported).not.toBeNull();
     const parsed = JSON.parse(exported!);
     expect(parsed.name).toBe('Midnight');
+  });
+
+  it('keeps built-in presets fresh from code and preserves only favorites on legacy storage', async () => {
+    const freshPreset = STARTER_PRESETS.find((p) => p.id === 'preset-midnight')!;
+    await storage.update(STORAGE_KEY, [
+      { ...freshPreset, description: 'STALE OLD CONTENT', isFavorite: true },
+      { id: 'profile-custom-legacy', name: 'Mine', version: 1, workbenchColors: {} },
+    ]);
+
+    const svc = new ProfileService(storage);
+    const preset = svc.getProfile('preset-midnight');
+    expect(preset?.description).toBe(freshPreset.description);
+    expect(preset?.isFavorite).toBe(true);
+    expect(svc.getProfile('profile-custom-legacy')).toBeDefined();
+    expect(svc.getProfiles().length).toBe(9);
+  });
+
+  it('restores built-in favorites from the v2 storage shape', async () => {
+    await storage.update(STORAGE_KEY, {
+      version: 2,
+      custom: [{ id: 'profile-custom-v2', name: 'V2 Custom', version: 1, workbenchColors: {} }],
+      builtInFavorites: { 'preset-midnight': true },
+    });
+
+    const svc = new ProfileService(storage);
+    expect(svc.getProfile('preset-midnight')?.isFavorite).toBe(true);
+    expect(svc.getProfile('profile-custom-v2')).toBeDefined();
+    expect(svc.getProfiles().filter((p) => p.isBuiltIn).length).toBe(STARTER_PRESETS.length);
+  });
+
+  it('persists only custom profiles plus built-in favorite flags', async () => {
+    await service.saveProfile({
+      id: 'profile-to-persist',
+      version: 1,
+      name: 'Persisted',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      workbenchColors: { 'editor.background': '#000000' },
+    });
+    await service.toggleFavorite('preset-midnight');
+
+    const stored = await storage.get<any>(STORAGE_KEY);
+    expect(Array.isArray(stored.custom)).toBe(true);
+    expect(stored.custom.every((p: ThemeProfile) => !p.isBuiltIn)).toBe(true);
+    expect(stored.custom.some((p: ThemeProfile) => p.id === 'profile-to-persist')).toBe(true);
+    expect(stored.builtInFavorites['preset-midnight']).toBe(true);
+  });
+
+  it('rejects saving a profile without a non-empty name', async () => {
+    const invalid: ThemeProfile = {
+      id: 'profile-invalid',
+      version: 1,
+      name: '   ',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      workbenchColors: {},
+    };
+    await expect(service.saveProfile(invalid)).rejects.toThrow('non-empty name');
+  });
+
+  it('drops invalid colors when importing a VS Code color-theme JSON', async () => {
+    const json = JSON.stringify({
+      name: 'Bad Colors Theme',
+      colors: {
+        'editor.background': '#002b36',
+        'editor.foreground': 'not-a-color',
+      },
+    });
+
+    const result = await service.importProfile(json);
+    expect(result.success).toBe(true);
+    expect(result.profile?.workbenchColors['editor.background']).toBe('#002b36');
+    expect(result.profile?.workbenchColors['editor.foreground']).toBeUndefined();
   });
 });
 

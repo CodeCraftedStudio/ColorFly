@@ -2,7 +2,7 @@
  * ChromaForge: Advanced Visual Color Picker Popover
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   hexToHsla,
   hslaToHex,
@@ -33,10 +33,27 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   const currentHex = hslaToHex(hsla);
   const currentRgba = hslaToRgba(hsla);
 
+  const didMountRef = useRef(false);
+
   useEffect(() => {
     setHexInput(currentHex);
-    onChange(currentHex);
-  }, [hsla]);
+    if (didMountRef.current) {
+      onChange(currentHex);
+    } else {
+      didMountRef.current = true;
+    }
+  }, [currentHex]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [onClose]);
 
   const handleHueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setHsla((prev) => ({ ...prev, h: parseInt(e.target.value, 10) }));

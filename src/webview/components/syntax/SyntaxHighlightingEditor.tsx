@@ -3,7 +3,7 @@
  * Manages standard token categories, custom TextMate scope rules, and semantic token styling.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { COMMON_TOKEN_CATEGORIES, STANDARD_SEMANTIC_TOKENS } from '../../../shared/tokenColorCatalog';
 import { TextMateTokenRule } from '../../../shared/types';
 import { ColorInput } from '../common/ColorInput';
@@ -13,17 +13,25 @@ import { PlusIcon, TrashIcon, SparklesIcon, CodeIcon } from '../common/Icons';
 interface SyntaxHighlightingEditorProps {
   stagedTokenColors: Record<string, string>;
   stagedSemanticTokens: Record<string, any>;
+  stagedTextMateRules?: TextMateTokenRule[];
 }
 
 export const SyntaxHighlightingEditor: React.FC<SyntaxHighlightingEditorProps> = ({
   stagedTokenColors = {},
   stagedSemanticTokens = {},
+  stagedTextMateRules = [],
 }) => {
   const [activeTab, setActiveTab] = useState<'categories' | 'textmate' | 'semantic'>('categories');
-  const [rules, setRules] = useState<TextMateTokenRule[]>([]);
+  const [rules, setRules] = useState<TextMateTokenRule[]>(stagedTextMateRules);
   const [newScope, setNewScope] = useState('');
   const [newColor, setNewColor] = useState('#4ec9b0');
   const [newFontStyle, setNewFontStyle] = useState('');
+
+  useEffect(() => {
+    setRules((prev) =>
+      JSON.stringify(prev) === JSON.stringify(stagedTextMateRules) ? prev : stagedTextMateRules
+    );
+  }, [stagedTextMateRules]);
 
   const tokens = stagedTokenColors || {};
   const semanticTokens = stagedSemanticTokens || {};

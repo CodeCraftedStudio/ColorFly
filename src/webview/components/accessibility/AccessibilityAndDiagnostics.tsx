@@ -90,14 +90,17 @@ export const AccessibilityAndDiagnostics: React.FC<AccessibilityAndDiagnosticsPr
   };
 
   const handleFixAllFailing = () => {
-    analyzedPairs
-      .filter((p) => !p.analysis.aaNormal)
-      .forEach((p) => {
-        sendToExtension({
-          type: 'STAGE_COLOR_CHANGE',
-          payload: { id: p.fgId, value: p.optimalFg },
-        });
-      });
+    const batch: Record<string, string> = {};
+    for (const p of analyzedPairs) {
+      if (!p.analysis.aaNormal) {
+        batch[p.fgId] = p.optimalFg;
+      }
+    }
+    if (Object.keys(batch).length === 0) return;
+    sendToExtension({
+      type: 'STAGE_COLOR_BATCH',
+      payload: { colors: batch },
+    });
   };
 
   return (

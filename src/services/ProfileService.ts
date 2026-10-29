@@ -24,27 +24,65 @@ export class ProfileService {
   }
 
   private loadFromStorage(): void {
-    const stored = this.storage.get<ThemeProfile[]>(STORAGE_KEY, []);
+    const storedRaw = this.storage.get<unknown>(STORAGE_KEY, []);
     this.profiles.clear();
 
-    // Load built-in starter presets first
-    for (const preset of STARTER_PRESETS) {
-      this.profiles.set(preset.id, { ...preset });
+    // Always start from fresh code-defined starter presets so built-in content
+    // is updated by extension releases instead of being frozen at first save.
+    const builtInIds = new Set(STARTER_PRESETS.map((preset) => preset.id));
+    let storedFavorites: Record<string, boolean> = {};
+    let storedCustom: ThemeProfile[] = [];
+
+    if (Array.isArray(storedRaw)) {
+      // Legacy shape: plain array containing both built-ins and customs
+      for (const entry of storedRaw as ThemeProfile[]) {
+        if (!entry || !entry.id || !entry.name) continue;
+        if (entry.isBuiltIn || builtInIds.has(entry.id)) {
+          if (builtInIds.has(entry.id) && entry.isFavorite) {
+            storedFavorites[entry.id] = true;
+          }
+          continue;
+        }
+        storedCustom.push(entry);
+      }
+    } else if (storedRaw && typeof storedRaw === 'object') {
+      const payload = storedRaw as { custom?: unknown; builtInFavorites?: unknown };
+      if (Array.isArray(payload.custom)) {
+        storedCustom = payload.custom.filter(
+          (entry): entry is ThemeProfile =>
+            !!entry && typeof entry === 'object' && !!(entry as ThemeProfile).id && !!(entry as ThemeProfile).name
+        );
+      }
+      if (payload.builtInFavorites && typeof payload.builtInFavorites === 'object') {
+        storedFavorites = payload.builtInFavorites as Record<string, boolean>;
+      }
     }
 
-    // Merge or override with user's stored profiles
-    if (Array.isArray(stored)) {
-      for (const p of stored) {
-        if (p && p.id && p.name) {
-          this.profiles.set(p.id, p);
-        }
-      }
+    for (const preset of STARTER_PRESETS) {
+      this.profiles.set(preset.id, { ...preset, isFavorite: !!storedFavorites[preset.id] });
+    }
+
+    for (const profile of storedCustom) {
+      if (profile.isBuiltIn || builtInIds.has(profile.id)) continue;
+      this.profiles.set(profile.id, profile);
     }
   }
 
   private async persist(): Promise<void> {
-    const list = Array.from(this.profiles.values());
-    await this.storage.update(STORAGE_KEY, list);
+    const custom = Array.from(this.profiles.values()).filter((profile) => !profile.isBuiltIn);
+    const builtInFavorites: Record<string, boolean> = {};
+    for (const preset of STARTER_PRESETS) {
+      const storedPreset = this.profiles.get(preset.id);
+      if (storedPreset?.isFavorite) {
+        builtInFavorites[preset.id] = true;
+      }
+    }
+
+    try {
+      await this.storage.update(STORAGE_KEY, { version: 2, custom, builtInFavorites });
+    } catch (err: any) {
+      console.warn('ColorFly: Failed to persist profiles:', err?.message || err);
+    }
   }
 
   public getProfiles(): ThemeProfile[] {
@@ -56,9 +94,18 @@ export class ProfileService {
   }
 
   public async saveProfile(profile: ThemeProfile): Promise<ThemeProfile> {
+    if (!profile || typeof profile.name !== 'string' || !profile.name.trim()) {
+      throw new Error('Profile must include a non-empty name.');
+    }
+
     const updated: ThemeProfile = {
       ...profile,
+      name: profile.name.trim(),
       version: 1,
+      workbenchColors:
+        profile.workbenchColors && typeof profile.workbenchColors === 'object'
+          ? profile.workbenchColors
+          : {},
       updatedAt: new Date().toISOString(),
     };
 
@@ -68,7 +115,7 @@ export class ProfileService {
 
     // Built-in presets cannot be overwritten directly, mark as custom or create duplicate
     if (updated.isBuiltIn) {
-      updated.id = `profile-${Date.now()}`;
+      updated.id = `profile-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
       updated.isBuiltIn = false;
       updated.name = `${updated.name} (Customized)`;
     }
@@ -138,16 +185,24 @@ export class ProfileService {
 
       // Handle standard VS Code color-theme JSON format
       if (parsed['$schema']?.includes('color-theme') || (parsed.colors && typeof parsed.colors === 'object')) {
+        const importedColors: Record<string, string> = {};
+        for (const [key, val] of Object.entries(parsed.colors || {})) {
+          if (typeof val === 'string' && isValidColor(val)) {
+            importedColors[key] = val;
+          }
+        }
         const imported: ThemeProfile = {
-          id: `profile-imported-${Date.now()}`,
+          id: `profile-imported-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
           version: 1,
-          name: parsed.name || 'Imported VS Code Theme',
+          name: typeof parsed.name === 'string' && parsed.name.trim() ? parsed.name : 'Imported VS Code Theme',
           description: 'Imported from VS Code color theme JSON',
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
-          workbenchColors: parsed.colors || {},
+          workbenchColors: importedColors,
           tokenColors: {
-            textMateRules: Array.isArray(parsed.tokenColors) ? parsed.tokenColors : [],
+            textMateRules: Array.isArray(parsed.tokenColors)
+              ? parsed.tokenColors.filter((rule: any) => rule && typeof rule === 'object')
+              : [],
           },
         };
         await this.saveProfile(imported);
@@ -169,7 +224,7 @@ export class ProfileService {
       }
 
       const imported: ThemeProfile = {
-        id: `profile-imported-${Date.now()}`,
+        id: `profile-imported-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         version: 1,
         name: parsed.name,
         description: parsed.description,

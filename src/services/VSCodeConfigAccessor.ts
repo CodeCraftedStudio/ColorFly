@@ -18,7 +18,16 @@ export class VSCodeConfigAccessor implements IConfigAccessor {
       ? vscode.ConfigurationTarget.Workspace
       : vscode.ConfigurationTarget.Global;
 
-    await config.update(section, value, vscodeTarget);
+    // Empty objects and nullish values mean "no customization": remove the
+    // key instead of writing `{}` into settings.json.
+    let normalized = value;
+    if (value === undefined || value === null) {
+      normalized = undefined;
+    } else if (typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0) {
+      normalized = undefined;
+    }
+
+    await config.update(section, normalized, vscodeTarget);
   }
 
   public inspect<T>(section: string): {

@@ -3,7 +3,7 @@
  * Complete color manipulation workspace with harmony generation and accessibility simulation.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   hexToHsla,
   hslaToHex,
@@ -25,7 +25,6 @@ import { sendToExtension } from '../../vscodeApi';
 import { CheckIcon, CopyIcon, SparklesIcon } from '../common/Icons';
 
 export const AdvancedColorStudio: React.FC = () => {
-  const [baseHex, setBaseHex] = useState('#007acc');
   const [hsla, setHsla] = useState<HSLA>(() => hexToHsla('#007acc') || { h: 207, s: 100, l: 40, a: 1 });
   const [targetComponent, setTargetComponent] = useState('editor.background');
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
@@ -33,10 +32,17 @@ export const AdvancedColorStudio: React.FC = () => {
   const currentHex = hslaToHex(hsla);
   const currentRgba = hslaToRgba(hsla);
 
-  const updateFromHex = (hex: string) => {
-    if (isValidHex(hex)) {
-      setBaseHex(hex);
-      const parsed = hexToHsla(hex);
+  const [hexText, setHexText] = useState(currentHex);
+
+  useEffect(() => {
+    setHexText(currentHex);
+  }, [currentHex]);
+
+  const handleHexTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setHexText(val);
+    if (isValidHex(val)) {
+      const parsed = hexToHsla(val);
       if (parsed) setHsla(parsed);
     }
   };
@@ -84,12 +90,7 @@ export const AdvancedColorStudio: React.FC = () => {
       'tab.activeBorder': currentHex,
     };
 
-    Object.entries(harmonyMap).forEach(([id, value]) => {
-      sendToExtension({
-        type: 'STAGE_COLOR_CHANGE',
-        payload: { id, value },
-      });
-    });
+    sendToExtension({ type: 'STAGE_COLOR_BATCH', payload: { colors: harmonyMap } });
   };
 
   return (
@@ -150,8 +151,8 @@ export const AdvancedColorStudio: React.FC = () => {
                   type="text"
                   className="color-text-input"
                   style={{ width: 120, fontSize: 14, fontWeight: 600 }}
-                  value={currentHex}
-                  onChange={(e) => updateFromHex(e.target.value)}
+                  value={hexText}
+                  onChange={handleHexTextChange}
                 />
                 <button className="btn btn-outline btn-sm" onClick={() => handleCopy(currentHex)}>
                   {copiedColor === currentHex ? (

@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import { useLanguage } from '../../i18n';
 import {
   OverviewIcon,
   PaletteIcon,
@@ -15,6 +16,7 @@ import {
   WrenchIcon,
   ClockIcon,
   SettingsIcon,
+  TerminalIcon,
 } from './Icons';
 
 export type TabId =
@@ -27,30 +29,47 @@ export type TabId =
   | 'accessibility'
   | 'advanced'
   | 'clock'
-  | 'settings';
+  | 'settings'
+  | 'logs';
 
 interface TabsNavProps {
   activeTab: TabId;
   onChangeTab: (tab: TabId) => void;
   draftCount: number;
+  errorCount?: number;
 }
 
 export const TabsNav: React.FC<TabsNavProps> = ({
   activeTab,
   onChangeTab,
   draftCount,
+  errorCount = 0,
 }) => {
-  const tabs: Array<{ id: TabId; label: string; icon: React.ReactNode; badge?: number }> = [
-    { id: 'overview', label: 'Overview', icon: <OverviewIcon size={14} /> },
-    { id: 'workbench', label: 'Workbench Colors', icon: <PaletteIcon size={14} />, badge: draftCount > 0 ? draftCount : undefined },
-    { id: 'picker', label: 'Color Studio & Harmonies', icon: <SlidersIcon size={14} /> },
-    { id: 'syntax', label: 'Syntax Highlighting', icon: <CodeIcon size={14} /> },
-    { id: 'preview', label: 'Live Preview Engine', icon: <EyeIcon size={14} /> },
-    { id: 'profiles', label: 'Profiles & Presets', icon: <LayersIcon size={14} /> },
-    { id: 'accessibility', label: 'Accessibility & WCAG', icon: <ShieldCheckIcon size={14} /> },
-    { id: 'advanced', label: 'Advanced & Raw JSON', icon: <WrenchIcon size={14} /> },
-    { id: 'clock', label: 'Clock & Frame', icon: <ClockIcon size={14} /> },
-    { id: 'settings', label: 'GUI Settings', icon: <SettingsIcon size={14} /> },
+  const { t } = useLanguage();
+  const tabs: Array<{
+    id: TabId;
+    label: string;
+    icon: React.ReactNode;
+    badge?: number;
+    badgeTone?: 'warning' | 'error';
+  }> = [
+    { id: 'overview', label: t('tab.overview'), icon: <OverviewIcon size={14} /> },
+    { id: 'workbench', label: t('tab.workbench'), icon: <PaletteIcon size={14} />, badge: draftCount > 0 ? draftCount : undefined },
+    { id: 'picker', label: t('tab.picker'), icon: <SlidersIcon size={14} /> },
+    { id: 'syntax', label: t('tab.syntax'), icon: <CodeIcon size={14} /> },
+    { id: 'preview', label: t('tab.preview'), icon: <EyeIcon size={14} /> },
+    { id: 'profiles', label: t('tab.profiles'), icon: <LayersIcon size={14} /> },
+    { id: 'accessibility', label: t('tab.accessibility'), icon: <ShieldCheckIcon size={14} /> },
+    { id: 'advanced', label: t('tab.advanced'), icon: <WrenchIcon size={14} /> },
+    { id: 'clock', label: t('tab.clock'), icon: <ClockIcon size={14} /> },
+    { id: 'settings', label: t('tab.settings'), icon: <SettingsIcon size={14} /> },
+    {
+      id: 'logs',
+      label: t('tab.logs'),
+      icon: <TerminalIcon size={14} />,
+      badge: errorCount > 0 ? errorCount : undefined,
+      badgeTone: 'error',
+    },
   ];
 
   return (
@@ -66,7 +85,15 @@ export const TabsNav: React.FC<TabsNavProps> = ({
           <span style={{ display: 'inline-flex', alignItems: 'center' }}>{tab.icon}</span>
           <span>{tab.label}</span>
           {tab.badge !== undefined && (
-            <span className="badge badge-warning" style={{ fontSize: 9, padding: '1px 5px' }}>
+            <span
+              className="badge"
+              style={{
+                fontSize: 9,
+                padding: '1px 5px',
+                background: tab.badgeTone === 'error' ? '#dc2626' : undefined,
+                color: tab.badgeTone === 'error' ? '#ffffff' : undefined,
+              }}
+            >
               {tab.badge}
             </span>
           )}

@@ -7,6 +7,7 @@ import React, { useState, useMemo } from 'react';
 import { ThemeProfile } from '../../../shared/types';
 import { sendToExtension } from '../../vscodeApi';
 import { StarIcon, PlusIcon, CloseIcon, CopyIcon, ExportIcon, TrashIcon, SearchIcon } from '../common/Icons';
+import { ConfirmDialog, PromptDialog } from '../common/Dialog';
 
 interface ProfileManagerProps {
   profiles: ThemeProfile[];
@@ -25,6 +26,9 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   const [showImportModal, setShowImportModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterPreset, setFilterPreset] = useState<'all' | 'custom' | 'builtIn'>('all');
+  const [duplicateTarget, setDuplicateTarget] = useState<{ id: string; name: string } | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; name: string } | null>(null);
+  const [showCreatePrompt, setShowCreatePrompt] = useState(false);
 
   const profileList = profiles || [];
 
@@ -48,32 +52,42 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   };
 
   const handleDuplicate = (id: string, name: string) => {
-    const newName = prompt('Enter a name for the duplicated profile:', `${name} (Copy)`);
-    if (newName && newName.trim()) {
-      sendToExtension({
-        type: 'DUPLICATE_PROFILE',
-        payload: { profileId: id, newName: newName.trim() },
-      });
-    }
+    setDuplicateTarget({ id, name });
   };
 
   const handleDelete = (id: string, name: string) => {
-    if (confirm(`Are you sure you want to delete profile "${name}"?`)) {
+    setDeleteTarget({ id, name });
+  };
+
+  const handleConfirmDuplicate = (newName: string) => {
+    if (duplicateTarget) {
       sendToExtension({
-        type: 'DELETE_PROFILE',
-        payload: { profileId: id },
+        type: 'DUPLICATE_PROFILE',
+        payload: { profileId: duplicateTarget.id, newName },
       });
     }
+    setDuplicateTarget(null);
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteTarget) {
+      sendToExtension({
+        type: 'DELETE_PROFILE',
+        payload: { profileId: deleteTarget.id },
+      });
+    }
+    setDeleteTarget(null);
   };
 
   const handleCreateFromDraft = () => {
-    const name = prompt('Enter a name for this new profile:');
-    if (!name || !name.trim()) return;
+    setShowCreatePrompt(true);
+  };
 
+  const handleConfirmCreate = (name: string) => {
     const newProfile: ThemeProfile = {
       id: `profile-${Date.now()}`,
       version: 1,
-      name: name.trim(),
+      name,
       description: 'Custom profile created in ColorFly Studio',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -85,6 +99,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       type: 'SAVE_PROFILE',
       payload: { profile: newProfile },
     });
+    setShowCreatePrompt(false);
   };
 
   const handleImportSubmit = () => {
@@ -272,9 +287,17 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
       {/* Import Modal */}
       {showImportModal && (
         <div className="modal-overlay" onClick={() => setShowImportModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cf-import-profile-title"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="modal-header">
-              <h3 style={{ margin: 0, fontSize: 14, color: 'var(--cf-title-fg)' }}>Import Theme Profile (JSON)</h3>
+              <h3 id="cf-import-profile-title" style={{ margin: 0, fontSize: 14, color: 'var(--cf-title-fg)' }}>
+                Import Theme Profile (JSON)
+              </h3>
               <button className="btn btn-outline btn-sm" onClick={() => setShowImportModal(false)}>
                 <CloseIcon size={12} />
               </button>
@@ -306,6 +329,39 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
             </div>
           </div>
         </div>
+      )}
+
+      {duplicateTarget && (
+        <PromptDialog
+          title="Duplicate Profile"
+          message={`Enter a name for the duplicated profile "${duplicateTarget.name}".`}
+          initialValue={`${duplicateTarget.name} (Copy)`}
+          confirmLabel="Duplicate"
+          onConfirm={handleConfirmDuplicate}
+          onCancel={() => setDuplicateTarget(null)}
+        />
+      )}
+
+      {deleteTarget && (
+        <ConfirmDialog
+          title="Delete Profile"
+          message={`Are you sure you want to delete profile "${deleteTarget.name}"? This cannot be undone.`}
+          confirmLabel="Delete"
+          danger
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeleteTarget(null)}
+        />
+      )}
+
+      {showCreatePrompt && (
+        <PromptDialog
+          title="Save Draft as Profile"
+          message="Enter a name for this new profile:"
+          placeholder="My Custom Theme"
+          confirmLabel="Save Profile"
+          onConfirm={handleConfirmCreate}
+          onCancel={() => setShowCreatePrompt(false)}
+        />
       )}
     </div>
   );

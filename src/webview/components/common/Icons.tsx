@@ -56,6 +56,14 @@ export const ClockIcon: React.FC<IconProps> = ({ size = 16, style, className }) 
   </svg>
 );
 
+export const GlobeIcon: React.FC<IconProps> = ({ size = 16, style, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>
+    <circle cx="12" cy="12" r="10" />
+    <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
+    <path d="M2 12h20" />
+  </svg>
+);
+
 export const OverviewIcon: React.FC<IconProps> = ({ size = 16, style, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={style} className={className}>
     <rect width="7" height="9" x="3" y="3" rx="1" />

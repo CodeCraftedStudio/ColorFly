@@ -86,13 +86,13 @@
 ## Installation & Quick Start
 
 ### Installing the VSIX Package
-1. Download the generated `chromaforge-1.0.0.vsix` package.
+1. Download the generated `colorfly-1.0.0.vsix` package.
 2. In VS Code, open the Extensions view (`Ctrl+Shift+X` or `Cmd+Shift+X`).
 3. Click the `...` (More Actions) menu in the top-right corner.
-4. Select **Install from VSIX...** and choose `chromaforge-1.0.0.vsix`.
+4. Select **Install from VSIX...** and choose `colorfly-1.0.0.vsix`.
 5. Alternatively, install via terminal:
    ```bash
-   code --install-extension chromaforge-1.0.0.vsix
+   code --install-extension colorfly-1.0.0.vsix
    ```
 
 ### Launching in Extension Development Host

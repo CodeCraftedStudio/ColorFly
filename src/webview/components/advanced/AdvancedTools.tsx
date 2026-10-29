@@ -24,13 +24,16 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
   const merged = { ...(effectiveColors || {}), ...(stagedColors || {}) };
   const [jsonText, setJsonText] = useState(() => JSON.stringify(merged, null, 2));
   const [jsonError, setJsonError] = useState<string | null>(null);
+  const [jsonDirty, setJsonDirty] = useState(false);
   const [customKey, setCustomKey] = useState('');
   const [customValue, setCustomValue] = useState('#007acc');
+  const [injectError, setInjectError] = useState<string | null>(null);
   const [copiedJson, setCopiedJson] = useState(false);
 
   useEffect(() => {
+    if (jsonDirty) return;
     setJsonText(JSON.stringify(merged, null, 2));
-  }, [effectiveColors, stagedColors]);
+  }, [effectiveColors, stagedColors, jsonDirty]);
 
   const handleCopyJson = () => {
     navigator.clipboard?.writeText(jsonText);
@@ -51,6 +54,7 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
   const handleJsonChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const val = e.target.value;
     setJsonText(val);
+    setJsonDirty(true);
     try {
       JSON.parse(val);
       setJsonError(null);
@@ -59,14 +63,23 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
     }
   };
 
+  const handleResetJson = () => {
+    setJsonText(JSON.stringify(merged, null, 2));
+    setJsonDirty(false);
+    setJsonError(null);
+  };
+
   const handleApplyRawJson = () => {
     if (jsonError) return;
     try {
-      JSON.parse(jsonText);
+      const parsed = JSON.parse(jsonText);
       sendToExtension({
         type: 'RAW_CONFIG_APPLY',
-        payload: { json: jsonText, themeScoped: true },
+        payload: { json: JSON.stringify(parsed), themeScoped: true },
       });
+      setJsonText(JSON.stringify(parsed, null, 2));
+      setJsonDirty(false);
+      setJsonError(null);
     } catch (err: any) {
       setJsonError(err.message);
     }
@@ -75,9 +88,10 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
   const handleInjectCustomKey = () => {
     if (!customKey.trim()) return;
     if (!isValidColor(customValue)) {
-      alert('Please enter a valid color value.');
+      setInjectError('Please enter a valid color value (hex, rgba, or hsl).');
       return;
     }
+    setInjectError(null);
     const normalized = normalizeColor(customValue) || customValue;
     sendToExtension({
       type: 'STAGE_COLOR_CHANGE',
@@ -128,6 +142,23 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
             <span>Inject Property</span>
           </button>
         </div>
+
+        {injectError && (
+          <div
+            style={{
+              marginTop: 10,
+              padding: '8px 12px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid #ef4444',
+              borderRadius: 4,
+              color: '#dc2626',
+              fontSize: 12,
+              fontWeight: 500,
+            }}
+          >
+            {injectError}
+          </div>
+        )}
       </div>
 
       {/* 2. Raw JSON Config Editor */}
@@ -158,7 +189,8 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
             </button>
             <button
               className="btn btn-outline btn-sm"
-              onClick={() => setJsonText(JSON.stringify(merged, null, 2))}
+              onClick={handleResetJson}
+              title="Discard local edits and reload live configuration"
             >
               Reset
             </button>
