@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Dedicated Vector SVG Icons (No Emojis)
+﻿/**
+ * ColorFly: Dedicated Vector SVG Icons (No Emojis)
  * Clean, lightweight, professional developer-tool icons.
  */
 
@@ -231,4 +231,5 @@ export const GitBranchIcon: React.FC<IconProps> = ({ size = 14, style, className
     <path d="M18 9a9 9 0 0 1-9 9" />
   </svg>
 );
+
 

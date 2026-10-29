@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+﻿import { describe, it, expect, beforeEach } from 'vitest';
 import { ProfileService, IProfileStorage } from '../src/services/ProfileService';
 import { ThemeProfile } from '../src/shared/types';
 import { STARTER_PRESETS } from '../src/shared/starterPresets';
@@ -64,7 +64,7 @@ describe('ProfileService', () => {
     await expect(service.deleteProfile('preset-midnight')).rejects.toThrow('Cannot delete built-in');
   });
 
-  it('imports valid ChromaForge profile JSON successfully', async () => {
+  it('imports valid ColorFly profile JSON successfully', async () => {
     const json = JSON.stringify({
       version: 1,
       name: 'Solarized Custom',
@@ -165,4 +165,5 @@ describe('ProfileService', () => {
     expect(result.profile?.workbenchColors['editor.foreground']).toBeUndefined();
   });
 });
+
 

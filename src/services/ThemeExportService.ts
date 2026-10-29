@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Theme Export Service
+﻿/**
+ * ColorFly: Theme Export Service
  * Generates standalone VS Code theme JSON files and scaffolds full installable theme extensions.
  */
 
@@ -96,7 +96,7 @@ export class ThemeExportService {
 
     const readme = `# ${profile.name} Color Theme
 
-${profile.description || 'A beautiful, custom theme generated using ColorFly — VS Code Theme Studio.'}
+${profile.description || 'A beautiful, custom theme generated using ColorFly â€” VS Code Theme Studio.'}
 
 ## Installation
 
@@ -168,4 +168,5 @@ SOFTWARE.
     };
   }
 }
+
 

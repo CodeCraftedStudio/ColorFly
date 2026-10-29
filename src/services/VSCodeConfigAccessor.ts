@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Concrete VS Code Configuration Accessor
+﻿/**
+ * ColorFly: Concrete VS Code Configuration Accessor
  */
 
 import * as vscode from 'vscode';
@@ -48,4 +48,5 @@ export class VSCodeConfigAccessor implements IConfigAccessor {
     };
   }
 }
+
 

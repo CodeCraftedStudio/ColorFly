@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Core Shared Type Definitions
+﻿/**
+ * ColorFly: Core Shared Type Definitions
  */
 
 export type ColorScope = 'user' | 'workspace';
@@ -202,7 +202,9 @@ export type WebviewToExtensionMessage =
   | { type: 'DUPLICATE_PROFILE'; payload: { profileId: string; newName: string } }
   | { type: 'DELETE_PROFILE'; payload: { profileId: string } }
   | { type: 'IMPORT_PROFILE'; payload: { rawJson: string } }
-  | { type: 'EXPORT_PROFILE'; payload: { profileId: string; format: 'colorfly-profile' | 'chromaforge-profile' | 'theme-json' | 'extension-scaffold' } }
+  | { type: 'EXPORT_PROFILE'; payload: { profileId: string;   format: 'colorfly-profile' | 'theme-json' | 'extension-scaffold' } }
   | { type: 'RAW_CONFIG_APPLY'; payload: { json: string; themeScoped: boolean } }
-  | { type: 'UPDATE_CLOCK_CONFIG'; payload: { showClock?: boolean; clockFormat?: '24h' | '12h'; clockShowSeconds?: boolean } };
+  | { type: 'UPDATE_CLOCK_CONFIG'; payload: { showClock?: boolean; clockFormat?: '24h' | '12h'; clockShowSeconds?: boolean } }
+  | { type: 'SET_ICON_THEME'; payload: { iconTheme: string } };
+
 

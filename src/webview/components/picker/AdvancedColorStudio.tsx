@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Advanced Color Studio & Palette Harmony Generator
+﻿/**
+ * ColorFly: Advanced Color Studio & Palette Harmony Generator
  * Complete color manipulation workspace with harmony generation and accessibility simulation.
  */
 
@@ -94,7 +94,7 @@ export const AdvancedColorStudio: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Target Component Bar */}
       <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -178,7 +178,7 @@ export const AdvancedColorStudio: React.FC = () => {
           <div className="slider-group">
             <label>
               <span>Hue</span>
-              <span>{hsla.h}°</span>
+              <span>{hsla.h}Â°</span>
             </label>
             <input
               type="range"
@@ -311,7 +311,7 @@ export const AdvancedColorStudio: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 16 }}>
           {/* Complementary */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Complementary (+180°)</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Complementary (+180Â°)</div>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <div style={{ width: 40, height: 32, borderRadius: 4, background: complementary, border: '1px solid var(--cf-border)' }} />
               <div style={{ flex: 1 }}>
@@ -329,7 +329,7 @@ export const AdvancedColorStudio: React.FC = () => {
 
           {/* Analogous */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Analogous (±30°)</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Analogous (Â±30Â°)</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[analogous1, analogous2].map((hex, idx) => (
                 <div key={idx} style={{ flex: 1 }}>
@@ -349,7 +349,7 @@ export const AdvancedColorStudio: React.FC = () => {
 
           {/* Triadic */}
           <div>
-            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Triadic (+120°, +240°)</div>
+            <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 6 }}>Triadic (+120Â°, +240Â°)</div>
             <div style={{ display: 'flex', gap: 6 }}>
               {[triadic1, triadic2].map((hex, idx) => (
                 <div key={idx} style={{ flex: 1 }}>
@@ -411,4 +411,5 @@ export const AdvancedColorStudio: React.FC = () => {
     </div>
   );
 };
+
 

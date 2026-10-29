@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Curated Starter Presets
+﻿/**
+ * ColorFly: Curated Starter Presets
  * 8 Original, production-grade theme configurations tailored for visual ergonomics.
  */
 
@@ -12,7 +12,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Midnight',
     description: 'Deep obsidian surface with electric violet and celestial indigo accents',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: true,
@@ -63,7 +63,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Deep Ocean',
     description: 'Abyssal teal and ocean blue with radiant cyan highlights',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: true,
@@ -114,7 +114,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Forest Terminal',
     description: 'Deep woodland moss and evergreen darks with phosphor green clarity',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -165,7 +165,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Warm Ember',
     description: 'Charcoal hearth with glowing ember orange, terracotta, and warm brass',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -216,7 +216,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Soft Lavender',
     description: 'Muted twilight purple, velvety orchid, and soft pastel contrasts',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -264,7 +264,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Monochrome',
     description: 'Disciplined grayscale elegance with pure graphite, slate, and silver',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -312,7 +312,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'Minimal Light',
     description: 'Porcelain white with soft zinc surfaces and high-clarity typography',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -360,7 +360,7 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     version: 1,
     name: 'High Contrast',
     description: 'Pure 0-luminance obsidian with vivid neon outlines and maximal WCAG ratio',
-    author: 'ChromaForge Studio',
+    author: 'ColorFly Studio',
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     isFavorite: false,
@@ -403,4 +403,5 @@ export const STARTER_PRESETS: ThemeProfile[] = [
     },
   },
 ];
+
 

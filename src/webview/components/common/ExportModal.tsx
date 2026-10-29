@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Export Theme Dialog Modal
+﻿/**
+ * ColorFly: Export Theme Dialog Modal
  */
 
 import React, { useState, useEffect } from 'react';
@@ -19,7 +19,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onClose,
 }) => {
   const [selectedProfileId, setSelectedProfileId] = useState<string>(activeProfileId || (profiles[0]?.id ?? ''));
-  const [format, setFormat] = useState<'theme-json' | 'chromaforge-profile' | 'extension-scaffold'>('theme-json');
+  const [format, setFormat] = useState<'theme-json' | 'colorfly-profile' | 'extension-scaffold'>('theme-json');
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -120,12 +120,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 <input
                   type="radio"
                   name="exportFormat"
-                  value="chromaforge-profile"
-                  checked={format === 'chromaforge-profile'}
-                  onChange={() => setFormat('chromaforge-profile')}
+                  value="ColorFly-profile"
+                  checked={format === 'ColorFly-profile'}
+                  onChange={() => setFormat('ColorFly-profile')}
                 />
                 <div>
-                  <strong>ChromaForge Profile Backup (JSON)</strong>
+                  <strong>ColorFly Profile Backup (JSON)</strong>
                   <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)' }}>
                     Complete portable profile including workbench colors, syntax rules, and metadata.
                   </div>
@@ -162,3 +162,4 @@ export const ExportModal: React.FC<ExportModalProps> = ({
     </div>
   );
 };
+

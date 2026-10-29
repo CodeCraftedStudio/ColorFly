@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Official VS Code Workbench Color Catalog
+﻿/**
+ * ColorFly: Official VS Code Workbench Color Catalog
  * Fully compliant with the official VS Code Theme Color Reference.
  * Comprehensive categorization, clear human names, and contextual descriptions.
  */
@@ -1278,4 +1278,5 @@ export const COLOR_DEFINITION_MAP = new Map<string, ColorDefinition>(
 export function getColorsByCategory(category: WorkbenchCategory): ColorDefinition[] {
   return OFFICIAL_WORKBENCH_COLORS.filter((def) => def.category === category);
 }
+
 

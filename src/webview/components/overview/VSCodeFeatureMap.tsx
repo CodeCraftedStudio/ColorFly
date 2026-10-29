@@ -7,6 +7,7 @@ import React, { useState } from 'react';
 import { TabId } from '../common/TabsNav';
 import { WorkbenchCategory } from '../../../shared/types';
 import { CodeIcon, LayersIcon, PaletteIcon, TerminalIcon, SlidersIcon } from '../common/Icons';
+import { Localized, useLanguage } from '../../i18n';
 
 export interface FeatureZone {
   id: string;
@@ -14,7 +15,7 @@ export interface FeatureZone {
   shortLabel: string;
   category: WorkbenchCategory;
   description: string;
-  impactBangla: string;
+  impact: Localized;
   keys: Array<{
     id: string;
     label: string;
@@ -28,7 +29,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Title Bar',
     category: 'tabsAndTitle',
     description: 'Top header bar displaying window controls, file name, workspace title, and layout options.',
-    impactBangla: 'VS Code উইন্ডোর সবচেয়ে উপরের হেডার বার, ফাইল/প্রজেক্ট নাম ও উইন্ডো কন্ট্রোল।',
+    impact: {
+      en: 'The top header bar of the VS Code window showing file/project name and window controls.',
+      bn: 'VS Code উইন্ডোর সবচেয়ে উপরের হেডার বার, ফাইল/প্রজেক্ট নাম ও উইন্ডো কন্ট্রোল।',
+      hi: 'VS Code विंडो का सबसे ऊपर का हेडर बार जिसमें फ़ाइल/प्रोजेक्ट नाम और विंडो नियंत्रण दिखते हैं।',
+    },
     keys: [
       { id: 'titleBar.activeBackground', label: 'Title Bar Background' },
       { id: 'titleBar.activeForeground', label: 'Title Bar Text' },
@@ -41,7 +46,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Activity Bar',
     category: 'activityBar',
     description: 'Far-left vertical icon stripe for switching views (Explorer, Search, Source Control, Extensions).',
-    impactBangla: 'একেবারে বাম পাশের খাড়া আইকন বার, যা দিয়ে ফাইল এক্সপ্লোরার, সার্চ, গিট ওপেন করা হয়।',
+    impact: {
+      en: 'The vertical icon bar on the far left used to open Explorer, Search, and Source Control.',
+      bn: 'একেবারে বাম পাশের খাড়া আইকন বার, যা দিয়ে ফাইল এক্সপ্লোরার, সার্চ, গিট ওপেন করা হয়।',
+      hi: 'बाएँ किनारे का खड़ा आइकन बार जिससे एक्सप्लोरर, खोज और सोर्स कंट्रोल खोले जाते हैं।',
+    },
     keys: [
       { id: 'activityBar.background', label: 'Activity Bar Background' },
       { id: 'activityBar.foreground', label: 'Active Icon Color' },
@@ -55,7 +64,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Sidebar',
     category: 'sideBar',
     description: 'Collapsible panel showing file tree, open folders, git changes, search results, and outlines.',
-    impactBangla: 'বাম পাশের মেইন প্যানেল যাতে ফাইল লিস্ট (Explorer), সার্চ রেজাল্ট ও গিট চেঞ্জেস থাকে।',
+    impact: {
+      en: 'The main panel on the left listing files (Explorer), search results, and git changes.',
+      bn: 'বাম পাশের মেইন প্যানেল যাতে ফাইল লিস্ট (Explorer), সার্চ রেজাল্ট ও গিট চেঞ্জেস থাকে।',
+      hi: 'बाएँ ओर का मुख्य पैनल जिसमें फ़ाइल सूची (एक्सप्लोरर), खोज परिणाम और गिट परिवर्तन होते हैं।',
+    },
     keys: [
       { id: 'sideBar.background', label: 'Sidebar Background' },
       { id: 'sideBar.foreground', label: 'Sidebar Text Color' },
@@ -69,7 +82,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Editor Tabs',
     category: 'tabsAndTitle',
     description: 'Horizontal tab strips at the top of editors showing currently open files and active indicators.',
-    impactBangla: 'এডিটরের উপরে খোলা থাকা ফাইলের ট্যাবসমূহ ও অ্যাক্টিভ ফাইল বর্ডার লাইন।',
+    impact: {
+      en: 'File tabs open above the editor with an active-file border line.',
+      bn: 'এডিটরের উপরে খোলা থাকা ফাইলের ট্যাবসমূহ ও অ্যাক্টিভ ফাইল বর্ডার লাইন।',
+      hi: 'एडिटर के ऊपर खुली फ़ाइल टैब पट्टी और सक्रिय फ़ाइल की बॉर्डर लाइन।',
+    },
     keys: [
       { id: 'tab.activeBackground', label: 'Active Tab Background' },
       { id: 'tab.activeForeground', label: 'Active Tab Text' },
@@ -83,7 +100,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Code Canvas',
     category: 'editor',
     description: 'The core code typing surface, line numbers, cursor, selection highlight, and indent guides.',
-    impactBangla: 'প্রধান কোড লেখার ক্যানভাস, কার্সর, লাইন নম্বর, এবং কোড সিলেক্ট হাইলাইট।',
+    impact: {
+      en: 'The main code writing canvas with cursor, line numbers, and code selection highlight.',
+      bn: 'প্রধান কোড লেখার ক্যানভাস, কার্সর, লাইন নম্বর, এবং কোড সিলেক্ট হাইলাইট।',
+      hi: 'कर्सर, लाइन नंबर और कोड चयन हाइलाइट सहित मुख्य कोड लेखन कैनवास।',
+    },
     keys: [
       { id: 'editor.background', label: 'Editor Background' },
       { id: 'editor.foreground', label: 'Default Code Text' },
@@ -98,7 +119,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Status Bar',
     category: 'statusBar',
     description: 'Bottom horizontal bar with Git branch, error/warning counters, encoding, line:col, and live clock.',
-    impactBangla: 'একেবারে নিচের নীল/রঙিন বার যাতে গিট ব্রাঞ্চ নাম, এরর কাউন্ট, ও স্ট্যাটাস ইনফো থাকে।',
+    impact: {
+      en: 'The colored bar at the very bottom showing git branch name, error count, and status info.',
+      bn: 'একেবারে নিচের নীল/রঙিন বার যাতে গিট ব্রাঞ্চ নাম, এরর কাউন্ট, ও স্ট্যাটাস ইনফো থাকে।',
+      hi: 'सबसे नीचे की रंगीन बार जिसमें गिट ब्रांच नाम, त्रुटि काउंट और स्थिति जानकारी दिखती है।',
+    },
     keys: [
       { id: 'statusBar.background', label: 'Status Bar Background' },
       { id: 'statusBar.foreground', label: 'Status Bar Text' },
@@ -111,7 +136,11 @@ export const FEATURE_ZONES: FeatureZone[] = [
     shortLabel: 'Terminal Panel',
     category: 'terminal',
     description: 'Bottom/side embedded shell surface for running npm commands, bash, powershell, and debug console.',
-    impactBangla: 'নিচের ইন্টিগ্রেটেড টার্মিনাল কনসোল যেখানে npm, git কমান্ড ইত্যাদি রান করা হয়।',
+    impact: {
+      en: 'The integrated terminal console at the bottom where npm, git, and other commands run.',
+      bn: 'নিচের ইন্টিগ্রেটেড টার্মিনাল কনসোল যেখানে npm, git কমান্ড ইত্যাদি রান করা হয়।',
+      hi: 'नीचे का इंटीग्रेटेड टर्मिनल कंसोल जहाँ npm, git आदि कमांड चलते हैं।',
+    },
     keys: [
       { id: 'terminal.background', label: 'Terminal Surface Background' },
       { id: 'terminal.foreground', label: 'Terminal Output Text' },
@@ -134,6 +163,7 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
 }) => {
   const mergedColors = { ...effectiveColors, ...stagedColors };
   const [activeZoneId, setActiveZoneId] = useState<string>('editor');
+  const { t, lang } = useLanguage();
 
   const selectedZone = FEATURE_ZONES.find((z) => z.id === activeZoneId) || FEATURE_ZONES[4];
 
@@ -184,17 +214,17 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
                 textTransform: 'uppercase',
               }}
             >
-              Interactive Feature Blueprint
+              {t('fmap.badge')}
             </span>
             <span style={{ fontSize: 12, color: 'var(--cf-desc-fg)' }}>
-              ভিজ্যুয়াল ম্যাপ: কোন সেটিংস কোথায় পরিবর্তন আনে
+              {t('fmap.subtitle')}
             </span>
           </div>
           <h3 style={{ margin: '6px 0 2px 0', fontSize: 16, fontWeight: 700, color: 'var(--cf-title-fg)' }}>
-            VS Code Interface Visual Architecture
+            {t('fmap.title')}
           </h3>
           <p style={{ margin: 0, fontSize: 12, color: 'var(--cf-desc-fg)' }}>
-            নিচের যে কোনো অংশে ক্লিক বা হোভার করে দেখুন কোন সেটিংসটি VS Code-এর কোন অংশকে পরিবর্তন করে।
+            {t('fmap.hint')}
           </p>
         </div>
 
@@ -204,7 +234,7 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
           style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '7px 14px', borderRadius: 8 }}
         >
           <SlidersIcon size={13} />
-          <span>Edit {selectedZone.shortLabel} Colors →</span>
+          <span>{t('fmap.editColors', { zone: selectedZone.shortLabel })}</span>
         </button>
       </div>
 
@@ -530,10 +560,10 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
                   color: 'var(--cf-title-fg)',
                 }}
               >
-                📍 Feature Zone: {selectedZone.shortLabel}
+                {t('fmap.featureZone', { zone: selectedZone.shortLabel })}
               </span>
               <span style={{ fontSize: 10, color: 'var(--cf-desc-fg)', fontFamily: 'var(--cf-font-mono)' }}>
-                Cat: {selectedZone.category}
+                {t('fmap.categoryTag', { cat: selectedZone.category })}
               </span>
             </div>
 
@@ -565,12 +595,12 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
                 marginBottom: 12,
               }}
             >
-              💡 <strong>কী পরিবর্তন হবে:</strong> {selectedZone.impactBangla}
+              💡 <strong>{t('fmap.whatChanges')}</strong> {selectedZone.impact[lang]}
             </div>
 
             {/* List of Key Color Properties that control this feature */}
             <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--cf-title-fg)', marginBottom: 6 }}>
-              Key Settings for this Feature:
+              {t('fmap.keySettings')}
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -620,7 +650,7 @@ export const VSCodeFeatureMap: React.FC<VSCodeFeatureMapProps> = ({
             style={{ width: '100%', padding: '9px 14px', borderRadius: 8, fontWeight: 600 }}
           >
             <SlidersIcon size={14} />
-            <span>Open & Customize {selectedZone.shortLabel} Settings</span>
+            <span>{t('fmap.openCustomize', { zone: selectedZone.shortLabel })}</span>
           </button>
         </div>
       </div>

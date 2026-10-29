@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Main React Webview Application
+﻿/**
+ * ColorFly: Main React Webview Application
  * Coordinates studio state, active themes, GUI settings, and RPC communication with Extension Host.
  */
 
@@ -25,6 +25,7 @@ import { ProfileManager } from './components/profiles/ProfileManager';
 import { AccessibilityAndDiagnostics } from './components/accessibility/AccessibilityAndDiagnostics';
 import { AdvancedTools } from './components/advanced/AdvancedTools';
 import { ClockStudio } from './components/clock/ClockStudio';
+import { IconLibrary } from './components/icons/IconLibrary';
 import { GuiSettings, GuiDensity } from './components/settings/GuiSettings';
 import { ExportModal } from './components/common/ExportModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
@@ -378,6 +379,8 @@ export const App: React.FC = () => {
             />
           )}
 
+          {activeTab === 'icons' && <IconLibrary />}
+
           {activeTab === 'clock' && (
             <ClockStudio
               clockConfig={state.clockConfig}
@@ -421,3 +424,4 @@ export const App: React.FC = () => {
     </LanguageContext.Provider>
   );
 };
+

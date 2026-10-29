@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Dedicated GUI Settings Studio
+﻿/**
+ * ColorFly: Dedicated GUI Settings Studio
  * Configure interface language, Studio UI Themes (including Pencil Paper & Animated Hacker),
  * layout density, font sizes, and animation preferences.
  */
@@ -113,7 +113,7 @@ export const GuiSettings: React.FC<GuiSettingsProps> = ({
   ];
 
   return (
-    <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 24 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 24 }}>
       {/* Settings Intro */}
       <div className="card">
         <h2 style={{ margin: '0 0 6px 0', fontSize: 18, fontWeight: 700, color: 'var(--cf-title-fg)' }}>
@@ -472,3 +472,4 @@ export const GuiSettings: React.FC<GuiSettingsProps> = ({
     </div>
   );
 };
+

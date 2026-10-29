@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Typed VS Code Webview API Wrapper
+﻿/**
+ * ColorFly: Typed VS Code Webview API Wrapper
  */
 
 import { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
@@ -33,4 +33,5 @@ export function getVsCodeApi(): VsCodeApi {
 export function sendToExtension(message: WebviewToExtensionMessage): void {
   getVsCodeApi().postMessage(message);
 }
+
 

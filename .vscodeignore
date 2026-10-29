@@ -10,3 +10,5 @@ vitest.config.ts
 **/*.map
 node_modules/**
 
+vscode-iconn/**
+scripts/**

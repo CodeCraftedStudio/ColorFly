@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Advanced Visual Color Picker Popover
+﻿/**
+ * ColorFly: Advanced Visual Color Picker Popover
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -25,6 +25,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   initialColor,
   onChange,
   onClose,
+  anchorRect,
 }) => {
   const norm = normalizeColor(initialColor) || '#007acc';
   const [hsla, setHsla] = useState<HSLA>(() => hexToHsla(norm) || { h: 200, s: 80, l: 50, a: 1 });
@@ -88,7 +89,15 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   ];
 
   return (
-    <div className="color-picker-popover" onClick={(e) => e.stopPropagation()}>
+    <div
+      className="color-picker-popover"
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: 'fixed',
+        ...(anchorRect ? { top: anchorRect.bottom + 8, left: Math.max(8, Math.min(anchorRect.left, window.innerWidth - 276)) } : {}),
+        zIndex: 9999,
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--cf-title-fg)' }}>Color Picker</span>
         <button
@@ -132,7 +141,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       <div className="slider-group">
         <label>
           <span>Hue</span>
-          <span>{hsla.h}°</span>
+          <span>{hsla.h}Â°</span>
         </label>
         <input
           type="range"
@@ -225,3 +234,4 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     </div>
   );
 };
+

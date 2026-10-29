@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Concrete VS Code Memento Profile Storage
+﻿/**
+ * ColorFly: Concrete VS Code Memento Profile Storage
  */
 
 import * as vscode from 'vscode';
@@ -20,4 +20,5 @@ export class VSCodeProfileStorage implements IProfileStorage {
     await this.memento.update(key, value);
   }
 }
+
 

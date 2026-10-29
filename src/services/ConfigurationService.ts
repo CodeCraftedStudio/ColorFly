@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Configuration Management Service
+﻿/**
+ * ColorFly: Configuration Management Service
  * Safely reads, merges, scopes, and applies VS Code theme color customizations
  * to workbench.colorCustomizations, editor.tokenColorCustomizations, and semantic tokens.
  */
@@ -287,4 +287,5 @@ export class ConfigurationService {
     );
   }
 }
+
 

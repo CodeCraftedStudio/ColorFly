@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Profile Management Service
+﻿/**
+ * ColorFly: Profile Management Service
  * Provides CRUD operations, versioned schema validation, imports, and exports for Theme Profiles.
  */
 
@@ -209,7 +209,7 @@ export class ProfileService {
         return { success: true, profile: imported };
       }
 
-      // Handle native ChromaForge Theme Profile format
+      // Handle native ColorFly Theme Profile format
       if (!parsed.name || typeof parsed.name !== 'string') {
         return { success: false, error: 'Missing required "name" field in profile.' };
       }
@@ -252,4 +252,5 @@ export class ProfileService {
     return JSON.stringify(profile, null, 2);
   }
 }
+
 

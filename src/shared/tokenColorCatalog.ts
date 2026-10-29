@@ -1,5 +1,5 @@
-/**
- * ChromaForge: TextMate & Semantic Token Color Definitions
+﻿/**
+ * ColorFly: TextMate & Semantic Token Color Definitions
  */
 
 export interface TokenCategoryDefinition {
@@ -125,4 +125,5 @@ export const STANDARD_SEMANTIC_TOKENS = [
   { id: 'property.readonly', label: 'Read-only Properties', description: 'Immutable properties' },
   { id: 'namespace', label: 'Namespaces / Modules', description: 'Module and package names' },
 ];
+
 

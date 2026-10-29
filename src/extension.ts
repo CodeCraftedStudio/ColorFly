@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Extension Activation & Lifecycle
+﻿/**
+ * ColorFly: Extension Activation & Lifecycle
  */
 
 import * as vscode from 'vscode';
@@ -48,7 +48,7 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Capture pristine snapshot of initial configuration before any ChromaForge operation
+  // Capture pristine snapshot of initial configuration before any ColorFly operation
   const activeTheme = vscode.workspace.getConfiguration('workbench').get<string>('colorTheme') || 'Default Dark+';
   const initialSnapshot = configService.createSnapshot('Initial activation state', 'user', activeTheme);
   recoveryService.setInitialSnapshot(initialSnapshot);
@@ -76,4 +76,5 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
   // Clean up any remaining resources if needed
 }
+
 

@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Profile Management Studio
+﻿/**
+ * ColorFly: Profile Management Studio
  * Create, duplicate, rename, delete, import, export, and compare theme profiles.
  */
 
@@ -120,7 +120,7 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Action Header */}
       <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         <div>
@@ -366,3 +366,4 @@ export const ProfileManager: React.FC<ProfileManagerProps> = ({
     </div>
   );
 };
+

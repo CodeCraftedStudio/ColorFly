@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Recovery & Snapshot Service
+﻿/**
+ * ColorFly: Recovery & Snapshot Service
  * Tracks edit history, undo/redo stacks, and maintains safe pre-customization snapshots.
  */
 
@@ -79,4 +79,5 @@ export class RecoveryService {
     this.redoStack = [];
   }
 }
+
 

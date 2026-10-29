@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Navigation Tabs Component
+﻿/**
+ * ColorFly: Navigation Tabs Component
  * Clean professional tab navigation using vector SVG icons.
  */
 
@@ -14,6 +14,7 @@ import {
   LayersIcon,
   ShieldCheckIcon,
   WrenchIcon,
+  FileIcon,
   ClockIcon,
   SettingsIcon,
   TerminalIcon,
@@ -28,6 +29,7 @@ export type TabId =
   | 'profiles'
   | 'accessibility'
   | 'advanced'
+  | 'icons'
   | 'clock'
   | 'settings'
   | 'logs';
@@ -61,6 +63,7 @@ export const TabsNav: React.FC<TabsNavProps> = ({
     { id: 'profiles', label: t('tab.profiles'), icon: <LayersIcon size={14} /> },
     { id: 'accessibility', label: t('tab.accessibility'), icon: <ShieldCheckIcon size={14} /> },
     { id: 'advanced', label: t('tab.advanced'), icon: <WrenchIcon size={14} /> },
+    { id: 'icons', label: t('tab.icons'), icon: <FileIcon size={14} /> },
     { id: 'clock', label: t('tab.clock'), icon: <ClockIcon size={14} /> },
     { id: 'settings', label: t('tab.settings'), icon: <SettingsIcon size={14} /> },
     {
@@ -102,3 +105,4 @@ export const TabsNav: React.FC<TabsNavProps> = ({
     </nav>
   );
 };
+

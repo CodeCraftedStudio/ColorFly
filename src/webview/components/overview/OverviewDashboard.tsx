@@ -11,6 +11,7 @@ import { TabId } from '../common/TabsNav';
 import { PaletteIcon, EyeIcon, StarIcon, SlidersIcon, CheckIcon, CopyIcon, LayersIcon } from '../common/Icons';
 import { VSCodeFeatureMap } from './VSCodeFeatureMap';
 import { getContrastRatio } from '../../../shared/colorUtils';
+import { useLanguage } from '../../i18n';
 
 interface OverviewDashboardProps {
   activeThemeName: string;
@@ -38,6 +39,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const customizedCount = Object.keys(effectiveColors || {}).length;
   const draftCount = Object.keys(stagedColors || {}).length;
   const [copiedHex, setCopiedHex] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   // Extract core palette colors
   const editorBg = mergedColors['editor.background'] || '#1e1e1e';
@@ -58,76 +60,76 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
   const paletteStrip = [
     {
-      label: 'Editor Background',
-      featurePill: 'Code Canvas',
+      label: t('overview.pal.editorBg.label'),
+      featurePill: t('overview.pal.editorBg.pill'),
       value: editorBg,
       textColor: editorFg,
       contrast: `${editorContrast}:1`,
       wcag: Number(editorContrast) >= 7 ? 'AAA' : Number(editorContrast) >= 4.5 ? 'AA' : 'Fail',
-      description: 'Main coding workspace background',
+      description: t('overview.pal.editorBg.desc'),
     },
     {
-      label: 'Editor Foreground',
-      featurePill: 'Code Syntax',
+      label: t('overview.pal.editorFg.label'),
+      featurePill: t('overview.pal.editorFg.pill'),
       value: editorFg,
       textColor: editorBg,
       contrast: `${editorContrast}:1`,
       wcag: Number(editorContrast) >= 7 ? 'AAA' : Number(editorContrast) >= 4.5 ? 'AA' : 'Fail',
-      description: 'Default text and punctuation in code',
+      description: t('overview.pal.editorFg.desc'),
     },
     {
-      label: 'Activity Bar',
-      featurePill: 'Navigation',
+      label: t('overview.pal.activityBg.label'),
+      featurePill: t('overview.pal.activityBg.pill'),
       value: activityBg,
       textColor: activityFg,
       contrast: `${getContrastRatio(activityFg, activityBg).toFixed(1)}:1`,
       wcag: Number(getContrastRatio(activityFg, activityBg)) >= 4.5 ? 'AA' : 'Low',
-      description: 'Leftmost tool switcher column',
+      description: t('overview.pal.activityBg.desc'),
     },
     {
-      label: 'Activity Icon',
-      featurePill: 'Icons',
+      label: t('overview.pal.activityIcon.label'),
+      featurePill: t('overview.pal.activityIcon.pill'),
       value: activityFg,
       textColor: activityBg,
       contrast: `${getContrastRatio(activityFg, activityBg).toFixed(1)}:1`,
       wcag: Number(getContrastRatio(activityFg, activityBg)) >= 4.5 ? 'AA' : 'Low',
-      description: 'Active tool indicator icon color',
+      description: t('overview.pal.activityIcon.desc'),
     },
     {
-      label: 'Sidebar Background',
-      featurePill: 'File Explorer',
+      label: t('overview.pal.sidebarBg.label'),
+      featurePill: t('overview.pal.sidebarBg.pill'),
       value: sidebarBg,
       textColor: sidebarFg,
       contrast: `${sidebarContrast}:1`,
       wcag: Number(sidebarContrast) >= 4.5 ? 'AA' : 'Low',
-      description: 'Files, outline & search container',
+      description: t('overview.pal.sidebarBg.desc'),
     },
     {
-      label: 'Status Bar',
-      featurePill: 'Bottom Bar',
+      label: t('overview.pal.statusBg.label'),
+      featurePill: t('overview.pal.statusBg.pill'),
       value: statusBg,
       textColor: statusFg,
       contrast: `${statusContrast}:1`,
       wcag: Number(statusContrast) >= 4.5 ? 'AA' : 'Low',
-      description: 'Bottom info & git branch bar',
+      description: t('overview.pal.statusBg.desc'),
     },
     {
-      label: 'Primary Button',
-      featurePill: 'UI Buttons',
+      label: t('overview.pal.buttonBg.label'),
+      featurePill: t('overview.pal.buttonBg.pill'),
       value: buttonBg,
       textColor: '#ffffff',
       contrast: `${getContrastRatio('#ffffff', buttonBg).toFixed(1)}:1`,
       wcag: Number(getContrastRatio('#ffffff', buttonBg)) >= 4.5 ? 'AA' : 'Low',
-      description: 'Dialogs & primary CTA actions',
+      description: t('overview.pal.buttonBg.desc'),
     },
     {
-      label: 'Terminal Surface',
-      featurePill: 'Console',
+      label: t('overview.pal.terminalBg.label'),
+      featurePill: t('overview.pal.terminalBg.pill'),
       value: terminalBg,
       textColor: '#cccccc',
       contrast: `${getContrastRatio('#cccccc', terminalBg).toFixed(1)}:1`,
       wcag: Number(getContrastRatio('#cccccc', terminalBg)) >= 4.5 ? 'AA' : 'Low',
-      description: 'Embedded CLI terminal background',
+      description: t('overview.pal.terminalBg.desc'),
     },
   ];
 
@@ -153,7 +155,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: 1140, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 22 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 22 }}>
       {/* 1. Command Hero Section */}
       <div
         className="card"
@@ -196,7 +198,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                   color: 'var(--cf-desc-fg)',
                 }}
               >
-                Scope: <strong>{scope === 'user' ? 'User (Global)' : 'Workspace'}</strong>
+                {t('overview.scopeLabel')} <strong>{scope === 'user' ? t('overview.scopeUser') : t('overview.scopeWorkspace')}</strong>
               </span>
             </div>
 
@@ -204,8 +206,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               ColorFly Appearance Engineering
             </h2>
             <p style={{ margin: 0, color: 'var(--cf-desc-fg)', fontSize: 13, lineHeight: 1.6 }}>
-              Visual Studio Code-এর প্রতিটি ইন্টারফেস এলিমেন্ট (Editor, Sidebar, Activity Bar, Terminal) নিখুঁতভাবে কাস্টমাইজ করুন।
-              নিচের ইন্টারঅ্যাক্টিভ ম্যাপ দেখে সরাসরি বুঝুন কোন সেটিংসটি VS Code-এর কোন ফিচার পরিবর্তন করে।
+              {t('overview.heroDesc')}
             </p>
           </div>
 
@@ -216,7 +217,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               style={{ padding: '8px 16px', borderRadius: 8, fontWeight: 600 }}
             >
               <PaletteIcon size={14} />
-              <span>Customize Workbench</span>
+              <span>{t('overview.customizeWorkbench')}</span>
             </button>
             <button
               className="btn btn-secondary"
@@ -224,7 +225,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               style={{ padding: '8px 16px', borderRadius: 8, fontWeight: 600 }}
             >
               <EyeIcon size={14} />
-              <span>Live Preview Engine</span>
+              <span>{t('overview.livePreview')}</span>
             </button>
           </div>
         </div>
@@ -247,7 +248,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 11, color: 'var(--cf-desc-fg)', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>
-                Active Color Theme
+                {t('overview.activeTheme')}
               </span>
               <PaletteIcon size={14} style={{ opacity: 0.6 }} />
             </div>
@@ -266,12 +267,12 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               {activeThemeName}
             </div>
             <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-              Base environment theme applied in VS Code
+              {t('overview.activeThemeDesc')}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
-            <span className="badge badge-info" style={{ fontSize: 10 }}>Base Environment</span>
-            <span style={{ fontSize: 10, color: 'var(--cf-desc-fg)' }}>Theme-Scoped</span>
+            <span className="badge badge-info" style={{ fontSize: 10 }}>{t('overview.baseEnvironment')}</span>
+            <span style={{ fontSize: 10, color: 'var(--cf-desc-fg)' }}>{t('overview.themeScoped')}</span>
           </div>
         </div>
 
@@ -290,20 +291,20 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 11, color: 'var(--cf-desc-fg)', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>
-                Active Profile
+                {t('overview.activeProfile')}
               </span>
               <LayersIcon size={14} style={{ opacity: 0.6 }} />
             </div>
             <div style={{ fontSize: 16, fontWeight: 700, marginTop: 6, color: 'var(--cf-focus-border)' }}>
-              {activeProfile?.name || 'Default Session'}
+              {activeProfile?.name || t('overview.defaultSession')}
             </div>
             <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-              {activeProfile?.isBuiltIn ? 'Built-in starter preset' : 'Custom user profile'}
+              {activeProfile?.isBuiltIn ? t('overview.builtInPreset') : t('overview.customProfile')}
             </div>
           </div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 4 }}>
             <span className="badge" style={{ fontSize: 10 }}>
-              {activeProfile?.isBuiltIn ? 'Preset' : 'User Saved'}
+              {activeProfile?.isBuiltIn ? t('overview.presetBadge') : t('overview.userSavedBadge')}
             </span>
             <button
               onClick={() => onNavigateTab('profiles')}
@@ -317,7 +318,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 textDecoration: 'underline',
               }}
             >
-              Switch Profile →
+              {t('overview.switchProfile')}
             </button>
           </div>
         </div>
@@ -337,15 +338,15 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 11, color: 'var(--cf-desc-fg)', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>
-                Applied Overrides
+                {t('overview.appliedOverrides')}
               </span>
               <SlidersIcon size={14} style={{ opacity: 0.6 }} />
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, marginTop: 6, color: '#16a34a' }}>
-              {customizedCount} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--cf-desc-fg)' }}>colors customized</span>
+              {customizedCount} <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--cf-desc-fg)' }}>{t('overview.colorsCustomized')}</span>
             </div>
             <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-              Scope: <strong>{scope === 'user' ? 'User (Global Settings)' : 'Workspace'}</strong>
+              {t('overview.scopeLabel')} <strong>{scope === 'user' ? t('overview.scopeUserFull') : t('overview.scopeWorkspace')}</strong>
             </div>
           </div>
           {/* Visual Mini Progress Bar */}
@@ -369,15 +370,15 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 11, color: 'var(--cf-desc-fg)', textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: 700 }}>
-                Draft & Sync Status
+                {t('overview.draftStatus')}
               </span>
               <CheckIcon size={14} style={{ opacity: 0.6 }} />
             </div>
             <div style={{ fontSize: 18, fontWeight: 800, marginTop: 6, color: draftCount > 0 ? '#d97706' : '#16a34a' }}>
-              {draftCount > 0 ? `${draftCount} Staged Changes` : 'Synchronized'}
+              {draftCount > 0 ? t('overview.stagedChanges', { n: draftCount }) : t('overview.synchronized')}
             </div>
             <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-              {draftCount > 0 ? 'Changes pending in draft' : 'In sync with VS Code settings'}
+              {draftCount > 0 ? t('overview.changesPending') : t('overview.inSync')}
             </div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
@@ -391,7 +392,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               }}
             />
             <span style={{ fontSize: 11, fontWeight: 600, color: draftCount > 0 ? '#d97706' : '#16a34a' }}>
-              {draftCount > 0 ? 'Ready to Apply' : 'Clean state'}
+              {draftCount > 0 ? t('overview.readyToApply') : t('overview.cleanState')}
             </span>
           </div>
         </div>
@@ -409,15 +410,15 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16, flexWrap: 'wrap', gap: 10 }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--cf-title-fg)' }}>
-              Active Core Palette Matrix
+              {t('overview.paletteTitle')}
             </h3>
             <p style={{ margin: '4px 0 0 0', fontSize: 12, color: 'var(--cf-desc-fg)' }}>
-              বর্তমান থিমের মূল কালারসমূহ, কনট্রাস্ট স্কোর এবং কোন কম্পোনেন্ট প্রভাবিত হচ্ছে তার তালিকা।
+              {t('overview.paletteDesc')}
             </p>
           </div>
           <button className="btn btn-outline btn-sm" onClick={() => onNavigateTab('picker')}>
             <SlidersIcon size={12} />
-            <span>Open Color Studio & Harmonies</span>
+            <span>{t('overview.openColorStudio')}</span>
           </button>
         </div>
 
@@ -477,7 +478,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                 >
                   {copiedHex === item.label ? (
                     <span style={{ fontSize: 10, background: 'rgba(0,0,0,0.75)', color: '#fff', padding: '2px 6px', borderRadius: 4, fontWeight: 700 }}>
-                      Copied!
+                      {t('overview.copied')}
                     </span>
                   ) : (
                     <span
@@ -524,7 +525,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                   <button
                     onClick={() => handleCopyColor(item.value, item.label)}
                     style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, color: 'var(--cf-desc-fg)' }}
-                    title="Copy HEX"
+                    title={t('overview.copyHex')}
                   >
                     <CopyIcon size={11} />
                   </button>
@@ -544,14 +545,14 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
           <div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: 'var(--cf-title-fg)' }}>
-              Curated Theme Presets & Profiles
+              {t('overview.presetsTitle')}
             </h3>
             <p style={{ margin: '4px 0 0 0', fontSize: 12, color: 'var(--cf-desc-fg)' }}>
-              এক ক্লিকে লোড বা অ্যাপ্লাই করার জন্য স্টুডিও প্রেসেটসমূহ (লাইভ মিনি-মকআপ সহ)।
+              {t('overview.presetsDesc')}
             </p>
           </div>
           <button className="btn btn-outline btn-sm" onClick={() => onNavigateTab('profiles')}>
-            <span>View All Profiles ({savedProfiles.length})</span>
+            <span>{t('overview.viewAllProfiles', { n: savedProfiles.length })}</span>
           </button>
         </div>
 
@@ -632,7 +633,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                     style={{ flex: 1, borderRadius: 6 }}
                     title="Load into workspace as staged drafts"
                   >
-                    Load Draft
+                    {t('overview.loadDraft')}
                   </button>
                   <button
                     className="btn btn-primary btn-sm"
@@ -640,7 +641,7 @@ export const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                     style={{ flex: 1, borderRadius: 6 }}
                     title="Directly apply to VS Code interface"
                   >
-                    Apply Now
+                    {t('overview.applyNow')}
                   </button>
                 </div>
               </div>

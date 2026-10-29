@@ -1,5 +1,5 @@
-/**
- * ChromaForge: React Error Boundary Component
+﻿/**
+ * ColorFly: React Error Boundary Component
  * Catches any render or runtime exceptions in tab views and displays
  * a developer-friendly recovery panel instead of a black screen.
  */
@@ -30,7 +30,7 @@ export class ErrorBoundary extends Component<Props, State> {
   }
 
   public override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    console.error('ChromaForge Studio Error caught by ErrorBoundary:', error, errorInfo);
+    console.error('ColorFly Studio Error caught by ErrorBoundary:', error, errorInfo);
     this.setState({ errorInfo });
   }
 
@@ -110,4 +110,5 @@ export class ErrorBoundary extends Component<Props, State> {
     return this.props.children;
   }
 }
+
 

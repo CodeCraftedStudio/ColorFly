@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Full Editor-Area Webview Panel
+﻿/**
+ * ColorFly: Full Editor-Area Webview Panel
  * Provides single-instance management, secure CSP HTML generation,
  * and robust RPC message handling.
  */
@@ -117,7 +117,7 @@ export class ThemeStudioEditorPanel {
 
     const panel = vscode.window.createWebviewPanel(
       ThemeStudioEditorPanel.viewType,
-      'ColorFly — Theme Studio',
+      'ColorFly â€” Theme Studio',
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -398,7 +398,7 @@ export class ThemeStudioEditorPanel {
 
           if (
             message.payload.format === 'colorfly-profile' ||
-            message.payload.format === 'chromaforge-profile'
+            message.payload.format === 'ColorFly-profile'
           ) {
             const json = this.profileService.exportProfileJson(profile.id);
             if (json) {
@@ -518,6 +518,15 @@ export class ThemeStudioEditorPanel {
           this.broadcastState();
           break;
         }
+
+        case 'SET_ICON_THEME': {
+          const { iconTheme } = message.payload;
+          const config = vscode.workspace.getConfiguration('workbench');
+          await config.update('iconTheme', iconTheme, vscode.ConfigurationTarget.Global);
+          this.broadcastState();
+          vscode.window.showInformationMessage(`ColorFly: Icon theme set to "${iconTheme}".`);
+          break;
+        }
       }
     } catch (err: any) {
       const message = formatErrorMessage(err);
@@ -548,7 +557,7 @@ export class ThemeStudioEditorPanel {
 
     const activeTheme = this.getActiveThemeName();
     const snapshot = this.configService.createSnapshot(
-      'Before ChromaForge Customization',
+      'Before ColorFly Customization',
       this.currentScope,
       activeTheme
     );
@@ -674,6 +683,7 @@ export class ThemeStudioEditorPanel {
 
     const scriptUri = webview.asWebviewUri(scriptPathOnDisk);
     const styleUri = webview.asWebviewUri(stylePathOnDisk);
+    const distUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'dist'));
 
     const nonce = getNonce();
 
@@ -683,11 +693,12 @@ export class ThemeStudioEditorPanel {
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src ${webview.cspSource} https: data:; script-src 'nonce-${nonce}'; style-src ${webview.cspSource} 'unsafe-inline'; font-src ${webview.cspSource};">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ColorFly — Theme Studio</title>
+  <title>ColorFly â€” Theme Studio</title>
   <link rel="stylesheet" type="text/css" href="${styleUri}">
 </head>
 <body>
   <div id="root"></div>
+  <script nonce="${nonce}">window.__CF_ASSET_BASE__ = "${distUri}/";</script>
   <script nonce="${nonce}" src="${scriptUri}"></script>
 </body>
 </html>`;
@@ -711,3 +722,4 @@ function getNonce(): string {
   }
   return text;
 }
+

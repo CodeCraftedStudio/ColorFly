@@ -1,5 +1,5 @@
-/**
- * ChromaForge Theme Studio: Styling & Multi-Theme Design System
+﻿/**
+ * ColorFly Theme Studio: Styling & Multi-Theme Design System
  * 100% vector SVG icons, high-contrast typography across all themes,
  * authentic realistic Pencil Paper drafting aesthetic, and Cyber Matrix terminal.
  */
@@ -957,5 +957,74 @@ body {
 
 .toggle-switch input:checked + .toggle-slider:before {
   transform: translateX(18px);
+}
+
+
+/* Icon Library table */
+.icon-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.icon-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--cf-input-bg);
+  color: var(--cf-title-fg);
+  font-weight: 700;
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 2px solid var(--cf-border);
+  white-space: nowrap;
+}
+
+.icon-table tbody td {
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--cf-border);
+  color: var(--cf-title-fg);
+  vertical-align: middle;
+}
+
+.icon-table tbody tr:nth-child(even) {
+  background: var(--cf-input-bg);
+}
+
+.icon-table tbody tr:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.icon-table-preview {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: middle;
+  background: var(--cf-bg);
+  border: 1px solid var(--cf-border);
+  border-radius: 4px;
+}
+
+.icon-table-preview img {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.icon-table-name {
+  font-family: var(--cf-font-mono);
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+.icon-table-path {
+  margin-left: 8px;
+  font-family: var(--cf-font-mono);
+  font-size: 11px;
+  color: var(--cf-desc-fg);
+  vertical-align: middle;
 }
 

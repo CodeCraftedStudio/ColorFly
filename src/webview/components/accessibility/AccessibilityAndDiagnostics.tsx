@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Accessibility & Diagnostics Studio
+﻿/**
+ * ColorFly: Accessibility & Diagnostics Studio
  * WCAG 2.1 relative luminance and contrast compliance matrix, suggestions, and theme diagnostics.
  */
 
@@ -104,7 +104,7 @@ export const AccessibilityAndDiagnostics: React.FC<AccessibilityAndDiagnosticsPr
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Intro Banner & Scorecard */}
       <div className="card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
         <div>
@@ -188,7 +188,7 @@ export const AccessibilityAndDiagnostics: React.FC<AccessibilityAndDiagnosticsPr
                       {pair.context}
                     </div>
                     <div style={{ fontSize: 10, fontFamily: 'var(--cf-font-mono)', color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-                      FG: {pair.fg} ({pair.fgId}) • BG: {pair.bg} ({pair.bgId})
+                      FG: {pair.fg} ({pair.fgId}) â€¢ BG: {pair.bg} ({pair.bgId})
                     </div>
                   </div>
                 </div>
@@ -247,3 +247,4 @@ export const AccessibilityAndDiagnostics: React.FC<AccessibilityAndDiagnosticsPr
     </div>
   );
 };
+

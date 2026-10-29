@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Live Status Bar Clock Widget
+﻿/**
+ * ColorFly: Live Status Bar Clock Widget
  * Renders a clean boxed-frame clock with live seconds in the VS Code status bar.
  * Configurable via extension settings and the Theme Studio GUI.
  */
@@ -18,7 +18,7 @@ export class ClockStatusBarWidget implements vscode.Disposable {
       1000
     );
     this.statusBarItem.command = 'colorfly.openStudio';
-    this.statusBarItem.tooltip = 'ColorFly Live Clock — Click to open Theme Studio';
+    this.statusBarItem.tooltip = 'ColorFly Live Clock â€” Click to open Theme Studio';
 
     this.update();
   }
@@ -113,4 +113,5 @@ export class ClockStatusBarWidget implements vscode.Disposable {
     this.statusBarItem.dispose();
   }
 }
+
 

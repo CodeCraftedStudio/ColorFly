@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Dedicated Clock & Box Frame Studio Component
+﻿/**
+ * ColorFly: Dedicated Clock & Box Frame Studio Component
  * Customization controls for Header Clock and Status Bar Boxed Frame Clock.
  * Shows time with live seconds ticking in real-time.
  */
@@ -156,7 +156,7 @@ export const ClockStudio: React.FC<ClockStudioProps> = ({
                 <ClockIcon size={24} style={{ color: 'var(--cf-accent)' }} />
                 <span>
                   {frameStyle === 'brackets' && `[ ${timeText} ]`}
-                  {frameStyle === 'cyber' && `⚡ < ${timeText} /> ⚡`}
+                  {frameStyle === 'cyber' && `âš¡ < ${timeText} /> âš¡`}
                   {frameStyle === 'solid' && `| ${timeText} |`}
                   {frameStyle === 'minimal' && `${timeText}`}
                 </span>
@@ -314,4 +314,5 @@ export const ClockStudio: React.FC<ClockStudioProps> = ({
     </div>
   );
 };
+
 

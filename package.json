@@ -3,7 +3,7 @@
   "displayName": "ColorFly — VS Code Theme Studio",
   "description": "Professional graphical theme studio to customize, preview, and manage VS Code workbench and syntax colors with precision.",
   "version": "1.0.0",
-  "publisher": "colorfly-studio",
+  "publisher": "CodeCraftedStudio",
   "repository": {
     "type": "git",
     "url": "https://github.com/colorfly/colorfly"
@@ -122,8 +122,9 @@
     "vscode:prepublish": "npm run build",
     "compile:ext": "tsc -p ./tsconfig.json",
     "build:ext": "tsc -p ./tsconfig.json",
-    "build:ui": "vite build --config vite.config.ts",
+    "build:ui": "vite build --config vite.config.ts && node scripts/sync-icons.mjs",
     "build": "npm run build:ui && npm run build:ext",
+    "icons:sync": "node scripts/sync-icons.mjs",
     "watch:ext": "tsc -watch -p ./tsconfig.json",
     "watch:ui": "vite build --watch --config vite.config.ts",
     "test": "vitest run",

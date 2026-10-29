@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Advanced Tools Studio
+﻿/**
+ * ColorFly: Advanced Tools Studio
  * Raw JSON editor with live validation, custom arbitrary property injector, and extension scaffold exporter.
  */
 
@@ -101,7 +101,7 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* 1. Custom Property Injector */}
       <div className="card">
         <h3 style={{ margin: '0 0 6px 0', fontSize: 14, fontWeight: 700, color: 'var(--cf-title-fg)' }}>Custom Property Injector</h3>
@@ -246,3 +246,4 @@ export const AdvancedTools: React.FC<AdvancedToolsProps> = ({
     </div>
   );
 };
+

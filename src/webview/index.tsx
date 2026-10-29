@@ -1,5 +1,5 @@
-/**
- * ChromaForge: React DOM Mount Entry Point
+﻿/**
+ * ColorFly: React DOM Mount Entry Point
  */
 
 import React from 'react';
@@ -16,4 +16,5 @@ if (rootEl) {
     </React.StrictMode>
   );
 }
+
 

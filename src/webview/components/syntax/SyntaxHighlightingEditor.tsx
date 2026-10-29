@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Syntax Highlighting Studio
+﻿/**
+ * ColorFly: Syntax Highlighting Studio
  * Manages standard token categories, custom TextMate scope rules, and semantic token styling.
  */
 
@@ -126,7 +126,7 @@ export const SyntaxHighlightingEditor: React.FC<SyntaxHighlightingEditorProps> =
   const varColor = tokens.variables || '#9cdcfe';
 
   return (
-    <div style={{ maxWidth: 1080, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Sub Navigation */}
       <div className="card" style={{ padding: 8, display: 'flex', gap: 6 }}>
         <button
@@ -393,3 +393,4 @@ export const SyntaxHighlightingEditor: React.FC<SyntaxHighlightingEditorProps> =
     </div>
   );
 };
+

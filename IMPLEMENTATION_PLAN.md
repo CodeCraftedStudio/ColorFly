@@ -1,9 +1,9 @@
-# ChromaForge: Advanced VS Code Theme Studio — Implementation Plan
+﻿# ColorFly: Advanced VS Code Theme Studio â€” Implementation Plan
 
 ## 1. Project Overview & Identity
-- **Product Name**: ChromaForge — VS Code Theme Studio
-- **Identifier**: `chromaforge`
-- **Publisher**: `chromaforge-studio`
+- **Product Name**: ColorFly â€” VS Code Theme Studio
+- **Identifier**: `ColorFly`
+- **Publisher**: `ColorFly-studio`
 - **Target Audience**: Developers, UI/UX designers, and theme creators demanding granular, real-time control over their VS Code color environment without manual JSON edits.
 - **Core Principle**: Every exposed control performs a real, validated, tested action. No mock buttons, dummy state, or simulated behaviors.
 
@@ -14,11 +14,11 @@
 ### 2.1 Extension Host (`src/`)
 - `extension.ts`: Activation lifecycle, subscription tracking, command registrations, configuration change listeners.
 - `commands/`:
-  - `chromaforge.openStudio`: Opens/reveals the full Theme Studio WebviewPanel in the editor area.
-  - `chromaforge.openSidebar`: Focuses the Activity Bar view.
-  - `chromaforge.applyCustomizations`: Persists staged color customizations to VS Code configuration.
-  - `chromaforge.resetCustomizations`: Reverts customizations safely to pre-customization snapshots.
-  - `chromaforge.exportTheme`: Exports active profile to standalone JSON / extension package.
+  - `ColorFly.openStudio`: Opens/reveals the full Theme Studio WebviewPanel in the editor area.
+  - `ColorFly.openSidebar`: Focuses the Activity Bar view.
+  - `ColorFly.applyCustomizations`: Persists staged color customizations to VS Code configuration.
+  - `ColorFly.resetCustomizations`: Reverts customizations safely to pre-customization snapshots.
+  - `ColorFly.exportTheme`: Exports active profile to standalone JSON / extension package.
 - `views/ThemeStudioSidebarProvider.ts`: WebviewViewProvider for the Activity Bar, presenting quick status, active profile/theme indicators, scope switcher, and a prominent "Open Theme Studio in Editor" button.
 - `panels/ThemeStudioEditorPanel.ts`: WebviewPanel manager for the full-page editor-area Theme Studio. Ensures single-instance management, state persistence, CSP security, and bidirectional messaging.
 - `services/`:
@@ -85,4 +85,5 @@
 - [ ] **Milestone 6: Packaging & Documentation**
   - Create comprehensive `README.md` with features, setup, and usage.
   - Package `.vsix` file using `@vscode/vsce`.
+
 

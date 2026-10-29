@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Color Science & Calculation Utilities
+﻿/**
+ * ColorFly: Color Science & Calculation Utilities
  * Implements precise color space conversions, WCAG 2.1 luminance/contrast algorithms,
  * color harmonies, and accessibility simulation.
  */
@@ -489,5 +489,6 @@ export function invertColor(hex: string): string {
     rgba.a < 1
   );
 }
+
 
 

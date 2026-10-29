@@ -1,5 +1,5 @@
-/**
- * ChromaForge: Live Visual Preview Engine
+﻿/**
+ * ColorFly: Live Visual Preview Engine
  * Multi-scene interactive simulation with realistic syntax rendering and vector icons.
  */
 
@@ -287,20 +287,20 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
             }}
           >
             <div>
-              <span style={{ color: termCyan }}>➜</span> <span style={{ color: termGreen }}>workspace/colorfly</span> <span style={{ color: termMagenta }}>git:(main)</span> <span style={{ color: termYellow }}>npm test</span>
+              <span style={{ color: termCyan }}>âžœ</span> <span style={{ color: termGreen }}>workspace/colorfly</span> <span style={{ color: termMagenta }}>git:(main)</span> <span style={{ color: termYellow }}>npm test</span>
             </div>
             <div style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
               &gt; colorfly@1.0.0 test<br />
               &gt; vitest run
             </div>
             <div style={{ marginTop: 8, color: termGreen }}>
-              ✓ tests/colorUtils.test.ts (20 tests passed)
+              âœ“ tests/colorUtils.test.ts (20 tests passed)
             </div>
             <div style={{ color: termGreen }}>
-              ✓ tests/configurationService.test.ts (5 tests passed)
+              âœ“ tests/configurationService.test.ts (5 tests passed)
             </div>
             <div style={{ color: termGreen }}>
-              ✓ tests/workbenchCatalog.test.ts (6 tests passed)
+              âœ“ tests/workbenchCatalog.test.ts (6 tests passed)
             </div>
             <div style={{ marginTop: 8, color: termFg }}>
               Test Files: <span style={{ color: termGreen, fontWeight: 'bold' }}>6 passed</span> (6)<br />
@@ -308,7 +308,7 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
               Duration: 1.15s
             </div>
             <div style={{ marginTop: 12 }}>
-              <span style={{ color: termCyan }}>➜</span> <span style={{ color: termGreen }}>workspace/colorfly</span> <span style={{ color: termMagenta }}>git:(main)</span> <span style={{ display: 'inline-block', width: 8, height: 14, background: termFg, verticalAlign: 'middle' }} />
+              <span style={{ color: termCyan }}>âžœ</span> <span style={{ color: termGreen }}>workspace/colorfly</span> <span style={{ color: termMagenta }}>git:(main)</span> <span style={{ display: 'inline-block', width: 8, height: 14, background: termFg, verticalAlign: 'middle' }} />
             </div>
           </div>
         );
@@ -336,7 +336,7 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 16 }}>
       {/* Scene Switcher & Language Selector */}
       <div className="card" style={{ padding: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
@@ -418,7 +418,7 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#ffbd2e', display: 'inline-block' }} />
             <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#27c93f', display: 'inline-block' }} />
           </div>
-          <span style={{ fontWeight: 600 }}>ColorFly Live Simulator — App.tsx</span>
+          <span style={{ fontWeight: 600 }}>ColorFly Live Simulator â€” App.tsx</span>
           <span style={{ opacity: 0.6 }}>VS Code 1.85+</span>
         </div>
 
@@ -486,7 +486,7 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
               Explorer: Workspace
             </div>
             <div style={{ padding: '4px 12px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <span style={{ fontSize: 9 }}>▼</span> <span>src</span>
+              <span style={{ fontSize: 9 }}>â–¼</span> <span>src</span>
             </div>
             <div style={{ padding: '4px 24px', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
               <FileIcon size={12} /> <span>extension.ts</span>
@@ -589,3 +589,4 @@ export const LivePreviewEngine: React.FC<LivePreviewEngineProps> = ({
     </div>
   );
 };
+
