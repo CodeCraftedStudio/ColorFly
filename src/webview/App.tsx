@@ -28,6 +28,7 @@ import { ClockStudio } from './components/clock/ClockStudio';
 import { IconLibrary } from './components/icons/IconLibrary';
 import { GuiSettings, GuiDensity } from './components/settings/GuiSettings';
 import { ExportModal } from './components/common/ExportModal';
+import { ImportModal } from './components/common/ImportModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SystemLogs } from './components/logs/SystemLogs';
 import { CheckIcon, CloseIcon } from './components/common/Icons';
@@ -128,6 +129,7 @@ export const App: React.FC = () => {
   };
 
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   /* Toast notification state */
   const { toasts, success, error, info, warning } = useToast();
@@ -345,6 +347,7 @@ export const App: React.FC = () => {
         guiTheme={guiTheme}
         onChangeGuiTheme={handleThemeChange}
         onOpenExportModal={() => setShowExportModal(true)}
+        onOpenImportModal={() => setShowImportModal(true)}
         onOpenSettings={() => setActiveTab('settings')}
         onOpenClockStudio={() => setActiveTab('clock')}
         clockConfig={state.clockConfig}
@@ -469,6 +472,14 @@ export const App: React.FC = () => {
           profiles={state.savedProfiles}
           activeProfileId={state.activeProfileId}
           onClose={() => setShowExportModal(false)}
+        />
+      )}
+
+      {/* Import Modal */}
+      {showImportModal && (
+        <ImportModal
+          onClose={() => setShowImportModal(false)}
+          onImportComplete={() => setShowImportModal(false)}
         />
       )}
 

@@ -37,14 +37,17 @@
   12. Badges, Scrollbars, and Breadcrumbs
 - **162 Isolated Color Setting Files**: Every workbench color setting has its own dedicated TypeScript component file under `src/webview/components/workbench/` (e.g. `editor_background.tsx`, `activityBar_foreground.tsx`), making per-feature bug fixes and maintenance fast and safe.
 - **Per-Color Active/Deactivate Toggle**: Each color row has a prominent Active/Deactivate button to enable or disable individual color overrides.
+- **Virtual Scrolling**: Large color lists are virtualized — only visible rows are rendered, keeping the UI smooth even with 162+ color settings.
 - **Fast Global Search**: Filter by human-readable component name, exact official VS Code color ID (e.g. `editor.background`), or description.
 - **Filtering Options**: Toggle between All Properties, Customized Only, or Unmodified Only.
 
 ### 3. Advanced Color Studio & Harmonies
 - **Precision Color Picker**: Visual Hue, Saturation, Lightness, and Alpha/Opacity sliders. Popup auto-clamps to viewport and flips above the anchor when near screen edges — never opens outside the layout boundary.
+- **Color History**: Recently used colors are saved to localStorage and shown in the picker for quick reuse (last 10 colors).
 - **Validated Input Formats**: Real-time validation and normalization for HEX (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`), RGB/RGBA, and HSL/HSLA.
 - **Algorithmic Harmonies**: Instantly generate Complementary, Analogous, Triadic, Monochromatic, and Neutral Dark Surface palettes derived from any seed color.
 - **Target Assignment**: Assign any generated harmony color to any workbench component in one click.
+- **Full Accessibility**: ARIA labels on all sliders, inputs, and buttons; keyboard navigation; Escape-to-close; focus management in dialogs.
 
 ### 3.5. Icon Library — Active/Deactivate per Icon
 - **Per-Icon Active/Deactivate Toggle**: Every icon in the Icon Library (308 VS Code icons) has its own Active/Deactivate button to enable or disable individual icons.
@@ -66,6 +69,7 @@
 - **Theme-Specific Scoping**: Target only the active theme using bracketed theme scopes (`"[Default Dark+]": { ... }`) to prevent polluting other themes.
 - **Non-Destructive Merging**: Preserves all unrelated user settings and third-party extensions.
 - **Pre-Customization Snapshots & 1-Click Restore**: Automatic pristine state capture before applying changes, allowing safe, non-destructive restoration at any time.
+- **Profile Version History**: Automatic version snapshots are saved before every profile modification. Keep up to 10 versions per profile and restore to any previous state instantly.
 
 ### 7. Profile & Preset Management
 - **8 Production Starter Presets**:
@@ -88,6 +92,8 @@
 
 ### 9. Theme Extension Generator
 - **Scaffold Installable Extensions**: Generates full extension folder structure (`package.json`, `themes/color-theme.json`, `README.md`, `LICENSE`, `CHANGELOG.md`) ready to be packaged via `vsce package` and published to the VS Code Marketplace.
+- **CSS Variables Export**: Export any theme as CSS custom properties (`--cf-editor-background`, `--cf-activity-bar-foreground`, etc.) for use in web applications and design tools.
+- **Import/Export Theme**: Import standard VS Code color-theme JSON into ColorFly, or export your customized theme as standalone VS Code theme JSON, ColorFly profile, or installable extension scaffold.
 
 ---
 

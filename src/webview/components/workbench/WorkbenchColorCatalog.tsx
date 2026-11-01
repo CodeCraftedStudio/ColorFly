@@ -22,6 +22,7 @@ import { useToast } from '../common/Toast';
 import { WorkbenchColorRow } from './WorkbenchColorRow';
 import { COLOR_COMPONENTS, type ColorComponentMap } from './colorComponentRegistry';
 import { CATEGORY_FEATURE_MAP } from './workbenchColorTypes';
+import { VirtualList } from '../common/VirtualList';
 
 interface WorkbenchColorCatalogProps {
   effectiveColors: Record<string, string>;
@@ -402,35 +403,48 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
       )}
 
       {/* Detailed Color Items List - each color uses its own dedicated component */}
-      <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: 12 }}>
+      <div
+        className="card"
+        style={{ padding: 0, overflow: 'hidden', borderRadius: 12, maxHeight: 600 }}
+      >
         {filteredColors.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--cf-desc-fg)' }}>
             {t('wcat.noResults')}
           </div>
         ) : selectedCategory !== 'all' ? (
           // Single category view: render each color with its dedicated component
-          colorsByCategory[selectedCategory]?.map((colorDef) => {
-            const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
-            return (
-              <ColorComponent
-                key={colorDef.id}
-                {...colorProps}
-                catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
-              />
-            );
-          })
+          <VirtualList
+            items={colorsByCategory[selectedCategory] || []}
+            itemHeight={78}
+            containerHeight={560}
+            renderItem={(colorDef) => {
+              const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
+              return (
+                <ColorComponent
+                  key={colorDef.id}
+                  {...colorProps}
+                  catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
+                />
+              );
+            }}
+          />
         ) : (
           // "All" view: render each color with its dedicated component
-          filteredColors.map((colorDef) => {
-            const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
-            return (
-              <ColorComponent
-                key={colorDef.id}
-                {...colorProps}
-                catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
-              />
-            );
-          })
+          <VirtualList
+            items={filteredColors}
+            itemHeight={78}
+            containerHeight={560}
+            renderItem={(colorDef) => {
+              const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
+              return (
+                <ColorComponent
+                  key={colorDef.id}
+                  {...colorProps}
+                  catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
+                />
+              );
+            }}
+          />
         )}
       </div>
 

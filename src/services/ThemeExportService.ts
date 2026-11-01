@@ -11,6 +11,11 @@ export interface GeneratedExtensionScaffold {
   files: Record<string, string>;
 }
 
+export interface GeneratedCssVariables {
+  cssVariables: string;
+  variableName: (colorId: string) => string;
+}
+
 export class ThemeExportService {
   /**
    * Converts a ThemeProfile into standard VS Code color-theme JSON format.
@@ -52,6 +57,48 @@ export class ThemeExportService {
     };
 
     return JSON.stringify(themeObj, null, 2);
+  }
+
+  /**
+   * Converts workbench colors to CSS custom properties (variables) format.
+   * Useful for web applications that want to consume VS Code theme colors.
+   */
+  public static toCSSVariables(profile: ThemeProfile, prefix: string = '--cf-'): string {
+    const lines: string[] = [
+      `:root {`,
+    ];
+
+    // Add workbench colors
+    for (const [colorId, colorValue] of Object.entries(profile.workbenchColors)) {
+      const varName = this.colorIdToCssVar(colorId, prefix);
+      lines.push(`  ${varName}: ${colorValue};`);
+    }
+
+    // Add token colors
+    if (profile.tokenColors) {
+      for (const [cat, colorValue] of Object.entries(profile.tokenColors as Record<string, string>)) {
+        const varName = this.colorIdToCssVar(`token.${cat}`, prefix);
+        lines.push(`  ${varName}: ${colorValue};`);
+      }
+    }
+
+    lines.push('}');
+    return lines.join('\n');
+  }
+
+  /**
+   * Converts a color ID (e.g. "editor.background") to a CSS variable name.
+   * Replaces dots with dashes and prefixes with the given prefix.
+   */
+  private static colorIdToCssVar(colorId: string, prefix: string): string {
+    return `${prefix}${colorId.replace(/\./g, '-')}`;
+  }
+
+  /**
+   * Returns a function that generates CSS variable names for a given color ID.
+   */
+  public static getCssVariableName(colorId: string, prefix: string = '--cf-'): string {
+    return this.colorIdToCssVar(colorId, prefix);
   }
 
   /**

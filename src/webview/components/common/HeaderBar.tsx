@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { ColorScope } from '../../../shared/types';
 import { sendToExtension } from '../../vscodeApi';
 import { useLanguage } from '../../i18n';
-import { SunIcon, MoonIcon, SettingsIcon, RefreshIcon, ExportIcon, ClockIcon } from './Icons';
+import { SunIcon, MoonIcon, SettingsIcon, RefreshIcon, ExportIcon, ImportIcon, ClockIcon } from './Icons';
 import { ConfirmDialog } from './Dialog';
 
 export type GuiTheme = 'vscode-native' | 'dark' | 'light' | 'pencil-paper' | 'animated-hacker';
@@ -22,6 +22,7 @@ interface HeaderBarProps {
   guiTheme: GuiTheme;
   onChangeGuiTheme: (theme: GuiTheme) => void;
   onOpenExportModal: () => void;
+  onOpenImportModal: () => void;
   onOpenSettings: () => void;
   onOpenClockStudio?: () => void;
   clockConfig?: {
@@ -42,6 +43,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   guiTheme,
   onChangeGuiTheme,
   onOpenExportModal,
+  onOpenImportModal,
   onOpenSettings,
   onOpenClockStudio,
   clockConfig = { showClock: true, clockFormat: '24h', clockShowSeconds: true },
@@ -343,6 +345,17 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           style={{ width: 32, height: 32, borderRadius: 6 }}
         >
           <SettingsIcon size={15} />
+        </button>
+
+        {/* Import Button */}
+        <button
+          className="btn btn-secondary"
+          onClick={onOpenImportModal}
+          title="Import VS Code Color Theme"
+          style={{ padding: '6px 12px', borderRadius: 6, fontWeight: 600 }}
+        >
+          <ImportIcon size={13} />
+          <span>Import</span>
         </button>
 
         {/* Export Button */}

@@ -32,6 +32,36 @@ export const ColorInput: React.FC<ColorInputProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const [colorHistory, setColorHistory] = useState<string[]>([]);
+
+  // Load color history from localStorage
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('colorfly_color_history');
+      if (stored) {
+        setColorHistory(JSON.parse(stored));
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, []);
+
+  // Save color to history when it changes
+  useEffect(() => {
+    const normalized = normalizeColor(text);
+    if (normalized && isValidColor(text)) {
+      setColorHistory((prev) => {
+        const filtered = prev.filter((c) => c !== normalized);
+        const updated = [normalized, ...filtered].slice(0, 10);
+        try {
+          localStorage.setItem('colorfly_color_history', JSON.stringify(updated));
+        } catch {
+          // ignore storage errors
+        }
+        return updated;
+      });
+    }
+  }, [text]);
 
   useEffect(() => {
     setText(value);
@@ -147,6 +177,11 @@ export const ColorInput: React.FC<ColorInputProps> = ({
             }}
             onClose={() => setIsOpen(false)}
             anchorRect={anchorRef.current?.getBoundingClientRect()}
+            colorHistory={colorHistory}
+            onColorSelectFromHistory={(hex) => {
+              setText(hex);
+              onChange(hex);
+            }}
           />
         </div>
       )}

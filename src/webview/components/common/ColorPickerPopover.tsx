@@ -19,6 +19,8 @@ interface ColorPickerPopoverProps {
   onChange: (newHex: string) => void;
   onClose: () => void;
   anchorRect?: DOMRect;
+  colorHistory?: string[];
+  onColorSelectFromHistory?: (hex: string) => void;
 }
 
 export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
@@ -26,6 +28,8 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
   onChange,
   onClose,
   anchorRect,
+  colorHistory = [],
+  onColorSelectFromHistory,
 }) => {
   const norm = normalizeColor(initialColor) || '#007acc';
   const [hsla, setHsla] = useState<HSLA>(() => hexToHsla(norm) || { h: 200, s: 80, l: 50, a: 1 });
@@ -44,6 +48,13 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
       didMountRef.current = true;
     }
   }, [currentHex]);
+
+  // Save selected color to history when it changes
+  useEffect(() => {
+    if (colorHistory && onColorSelectFromHistory) {
+      // Handled externally via onChange -> onColorSelectFromHistory
+    }
+  }, [currentHex, colorHistory, onColorSelectFromHistory]);
 
   // Popover dimensions (kept in sync with the rendered content below).
   const POPOVER_WIDTH = 276;
@@ -133,6 +144,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           onClick={onClose}
           style={{ padding: '3px 6px', fontSize: 10 }}
           title="Close color picker"
+          aria-label="Close color picker"
         >
           <CloseIcon size={12} />
         </button>
@@ -158,6 +170,8 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
             style={{ width: '100%', fontSize: 13 }}
             value={hexInput}
             onChange={handleHexInputChange}
+            aria-label="Color hex value"
+            placeholder="#000000"
           />
           <div style={{ fontSize: 10, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
             RGB({currentRgba.r}, {currentRgba.g}, {currentRgba.b})
@@ -167,7 +181,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
 
       {/* Hue Slider */}
       <div className="slider-group">
-        <label>
+        <label aria-label="Hue slider">
           <span>Hue</span>
           <span>{hsla.h}Â°</span>
         </label>
@@ -178,6 +192,9 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           value={hsla.h}
           onChange={handleHueChange}
           className="range-slider"
+          aria-valuemin={0}
+          aria-valuemax={360}
+          aria-valuenow={hsla.h}
           style={{
             background: 'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)',
           }}
@@ -186,7 +203,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
 
       {/* Saturation Slider */}
       <div className="slider-group">
-        <label>
+        <label aria-label="Saturation slider">
           <span>Saturation</span>
           <span>{hsla.s}%</span>
         </label>
@@ -197,12 +214,15 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           value={hsla.s}
           onChange={handleSaturationChange}
           className="range-slider"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={hsla.s}
         />
       </div>
 
       {/* Lightness Slider */}
       <div className="slider-group">
-        <label>
+        <label aria-label="Lightness slider">
           <span>Lightness</span>
           <span>{hsla.l}%</span>
         </label>
@@ -213,12 +233,15 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           value={hsla.l}
           onChange={handleLightnessChange}
           className="range-slider"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={hsla.l}
         />
       </div>
 
       {/* Alpha Slider */}
       <div className="slider-group">
-        <label>
+        <label aria-label="Opacity slider">
           <span>Opacity</span>
           <span>{Math.round(hsla.a * 100)}%</span>
         </label>
@@ -230,6 +253,9 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           value={hsla.a}
           onChange={handleAlphaChange}
           className="range-slider"
+          aria-valuemin={0}
+          aria-valuemax={1}
+          aria-valuenow={hsla.a}
         />
       </div>
 
@@ -259,6 +285,39 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Recently Used Colors */}
+      {colorHistory.length > 0 && (
+        <div style={{ marginTop: 12, paddingTop: 10, borderTop: '1px solid var(--cf-border)' }}>
+          <div style={{ fontSize: 10, color: 'var(--cf-desc-fg)', marginBottom: 6, fontWeight: 500 }}>
+            Recently Used
+          </div>
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {colorHistory.map((color) => (
+              <div
+                key={color}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const parsed = hexToHsla(color);
+                  if (parsed) {
+                    setHsla(parsed);
+                    onColorSelectFromHistory?.(color);
+                  }
+                }}
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 3,
+                  background: color,
+                  cursor: 'pointer',
+                  border: '1px solid var(--cf-border)',
+                }}
+                title={color}
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

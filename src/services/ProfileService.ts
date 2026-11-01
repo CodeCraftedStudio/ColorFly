@@ -17,6 +17,7 @@ const STORAGE_KEY = 'colorfly.savedProfiles.v1';
 export class ProfileService {
   private storage: IProfileStorage;
   private profiles: Map<string, ThemeProfile> = new Map();
+  private versionHistory: Map<string, ThemeProfile[]> = new Map();
 
   constructor(storage: IProfileStorage) {
     this.storage = storage;
@@ -120,9 +121,59 @@ export class ProfileService {
       updated.name = `${updated.name} (Customized)`;
     }
 
+    // Save version snapshot before overwriting existing custom profile
+    if (updated.id.startsWith('profile-') && this.profiles.has(updated.id)) {
+      this.saveVersion(updated.id, this.profiles.get(updated.id)!);
+    }
+
     this.profiles.set(updated.id, updated);
     await this.persist();
     return updated;
+  }
+
+  /**
+   * Saves a version snapshot of a profile before it is modified.
+   * Enables rollback to previous versions via restoreVersion.
+   */
+  public saveVersion(profileId: string, profile: ThemeProfile): void {
+    const history = this.versionHistory.get(profileId) || [];
+    // Keep last 10 versions
+    if (history.length >= 10) history.shift();
+    history.push({ ...JSON.parse(JSON.stringify(profile)) });
+    this.versionHistory.set(profileId, history);
+  }
+
+  /**
+   * Returns the version history for a profile (newest first).
+   */
+  public getVersionHistory(profileId: string): ThemeProfile[] {
+    const history = this.versionHistory.get(profileId) || [];
+    return [...history].reverse();
+  }
+
+  /**
+   * Restores a profile to a previous version by index (0 = most recent).
+   */
+  public async restoreVersion(profileId: string, versionIndex: number): Promise<ThemeProfile | undefined> {
+    const history = this.versionHistory.get(profileId) || [];
+    const reversed = [...history].reverse();
+    const target = reversed[versionIndex];
+    if (!target) return undefined;
+
+    const restored: ThemeProfile = {
+      ...target,
+      updatedAt: new Date().toISOString(),
+    };
+    this.profiles.set(profileId, restored);
+    await this.persist();
+    return restored;
+  }
+
+  /**
+   * Clears version history for a profile.
+   */
+  public clearVersionHistory(profileId: string): void {
+    this.versionHistory.delete(profileId);
   }
 
   public async duplicateProfile(id: string, newName: string): Promise<ThemeProfile> {
