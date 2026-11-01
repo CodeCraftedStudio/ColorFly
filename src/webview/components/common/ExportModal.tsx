@@ -120,9 +120,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 <input
                   type="radio"
                   name="exportFormat"
-                  value="ColorFly-profile"
-                  checked={format === 'ColorFly-profile'}
-                  onChange={() => setFormat('ColorFly-profile')}
+                  value="colorfly-profile"
+                  checked={format === 'colorfly-profile'}
+                  onChange={() => setFormat('colorfly-profile')}
                 />
                 <div>
                   <strong>ColorFly Profile Backup (JSON)</strong>

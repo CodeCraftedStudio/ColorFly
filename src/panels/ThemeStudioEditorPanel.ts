@@ -397,8 +397,7 @@ export class ThemeStudioEditorPanel {
           }
 
           if (
-            message.payload.format === 'colorfly-profile' ||
-            message.payload.format === 'ColorFly-profile'
+            message.payload.format === 'colorfly-profile'
           ) {
             const json = this.profileService.exportProfileJson(profile.id);
             if (json) {

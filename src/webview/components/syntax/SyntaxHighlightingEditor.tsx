@@ -198,7 +198,7 @@ export const SyntaxHighlightingEditor: React.FC<SyntaxHighlightingEditorProps> =
                 &nbsp;&nbsp;<span style={{ color: kwColor }}>const</span> <span style={{ color: varColor }}>contrast</span>: <span style={{ color: typeColor }}>number</span> = <span style={{ color: numColor }}>4.5</span>;
               </div>
               <div>
-                &nbsp;&nbsp;<span style={{ color: kwColor }}>return</span> [<span style={{ color: strColor }}>`#\${seed}_\${steps}`</span>];
+                &nbsp;&nbsp;<span style={{ color: kwColor }}>return</span> [<span style={{ color: strColor }}>{`'#\${seed}_\${steps}'`}</span>];
               </div>
               <div>{'}'}</div>
             </div>

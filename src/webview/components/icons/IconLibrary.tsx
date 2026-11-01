@@ -6,10 +6,10 @@
  * Now supports selecting an icon and applying it as the workbench icon theme.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { ICON_CATALOG } from '../../../shared/iconCatalog';
 import { useLanguage } from '../../i18n';
-import { FileIcon } from '../common/Icons';
+import { FileIcon, SearchIcon, SlidersIcon } from '../common/Icons';
 import { sendToExtension } from '../../vscodeApi';
 
 const RESERVED_COLUMN_COUNT = 3;

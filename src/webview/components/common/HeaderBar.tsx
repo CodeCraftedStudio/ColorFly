@@ -120,7 +120,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
   const handleApply = () => {
     sendToExtension({
-      type: 'APPLY_CHANGES',
+      type: 'APPLY_CUSTOMIZATIONS',
       payload: { themeScoped },
     });
   };

@@ -45,6 +45,38 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     }
   }, [currentHex]);
 
+  // Popover dimensions (kept in sync with the rendered content below).
+  const POPOVER_WIDTH = 276;
+  const POPOVER_HEIGHT = 470;
+
+  // Compute a viewport-clamped position so the picker never opens outside
+  // the layout/viewport. When there isn't enough room below the anchor, the
+  // popover flips to open above it.
+  const popoverPosition = React.useMemo(() => {
+    if (!anchorRect) {
+      return { position: 'fixed' as const, top: 8, left: 8, zIndex: 9999 };
+    }
+    const rect = anchorRect;
+    const placeBelowTop = rect.bottom + 8;
+    const spaceBelow = window.innerHeight - placeBelowTop;
+    const spaceAbove = rect.top - 8;
+
+    let top = placeBelowTop;
+    if (spaceBelow < POPOVER_HEIGHT && spaceAbove >= spaceBelow) {
+      // Not enough room below; flip above the anchor.
+      top = rect.top - POPOVER_HEIGHT - 8;
+    }
+
+    // Clamp vertically inside the viewport.
+    top = Math.max(8, Math.min(top, window.innerHeight - POPOVER_HEIGHT - 8));
+
+    // Clamp horizontally inside the viewport, preferring the anchor's left edge.
+    let left = Math.max(8, Math.min(rect.left, window.innerWidth - POPOVER_WIDTH - 8));
+    if (left < 8) left = 8;
+
+    return { position: 'fixed' as const, top, left, zIndex: 9999 };
+  }, [anchorRect]);
+
   useEffect(() => {
     const handleKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -92,11 +124,7 @@ export const ColorPickerPopover: React.FC<ColorPickerPopoverProps> = ({
     <div
       className="color-picker-popover"
       onClick={(e) => e.stopPropagation()}
-      style={{
-        position: 'fixed',
-        ...(anchorRect ? { top: anchorRect.bottom + 8, left: Math.max(8, Math.min(anchorRect.left, window.innerWidth - 276)) } : {}),
-        zIndex: 9999,
-      }}
+      style={popoverPosition}
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <span style={{ fontWeight: 600, fontSize: 12, color: 'var(--cf-title-fg)' }}>Color Picker</span>

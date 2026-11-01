@@ -10,12 +10,13 @@ import {
   WORKBENCH_CATEGORIES,
 } from '../../../shared/officialWorkbenchColors';
 import { WorkbenchCategory } from '../../../shared/types';
-import { adjustLightness, invertColor } from '../../../shared/colorUtils';
+import { adjustLightness, invertColor, analyzeContrast } from '../../../shared/colorUtils';
 import { ColorInput } from '../common/ColorInput';
 import { sendToExtension } from '../../vscodeApi';
-import { SearchIcon, CloseIcon, CopyIcon, SparklesIcon, RefreshIcon, SlidersIcon } from '../common/Icons';
+import { SearchIcon, CloseIcon, CopyIcon, SparklesIcon, RefreshIcon, SlidersIcon, StarIcon } from '../common/Icons';
 import { ConfirmDialog } from '../common/Dialog';
 import { Localized, useLanguage } from '../../i18n';
+import { useToast } from '../common/Toast';
 
 interface WorkbenchColorCatalogProps {
   effectiveColors: Record<string, string>;
@@ -157,7 +158,9 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
   const [resetCategoryTarget, setResetCategoryTarget] = useState<WorkbenchCategory | null>(null);
   const [copyStatus, setCopyStatus] = useState<string | null>(null);
   const [activeColors, setActiveColors] = useState<Record<string, boolean>>({});
+  const [bulkSelected, setBulkSelected] = useState<Set<string>>(new Set());
   const { t, lang } = useLanguage();
+  const { success } = useToast();
 
   useEffect(() => {
     if (initialCategory) {
@@ -217,6 +220,67 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
       type: 'RESET_COLOR',
       payload: { id },
     });
+  };
+
+  /* Bulk selection */
+  const handleBulkToggle = (id: string) => {
+    setBulkSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkSelectAll = () => {
+    const allIds = filteredColors.map((c) => c.id);
+    if (bulkSelected.size === allIds.length) {
+      setBulkSelected(new Set());
+    } else {
+      setBulkSelected(new Set(allIds));
+    }
+  };
+
+  const handleBulkReset = () => {
+    for (const id of bulkSelected) {
+      sendToExtension({ type: 'RESET_COLOR', payload: { id } });
+    }
+    setBulkSelected(new Set());
+    success?.('Bulk reset completed');
+  };
+
+  const handleBulkActivate = () => {
+    for (const id of bulkSelected) {
+      setActiveColors((prev) => ({ ...prev, [id]: true }));
+      const cur = mergedColors[id];
+      if (cur) {
+        sendToExtension({ type: 'STAGE_COLOR_CHANGE', payload: { id, value: cur } });
+      }
+    }
+    setBulkSelected(new Set());
+    success?.('Bulk activate completed');
+  };
+
+  const handleBulkDeactivate = () => {
+    for (const id of bulkSelected) {
+      setActiveColors((prev) => ({ ...prev, [id]: false }));
+      sendToExtension({ type: 'RESET_COLOR', payload: { id } });
+    }
+    setBulkSelected(new Set());
+    success?.('Bulk deactivate completed');
+  };
+
+  /* Contrast ratio for a color row (fg vs editor background) */
+  const getContrastBadge = (bgColor: string) => {
+    const fg = '#ffffff';
+    const analysis = analyzeContrast(fg, bgColor);
+    if (!analysis) return null;
+    const passed = analysis.aaNormal;
+    return {
+      ratio: analysis.ratio.toFixed(2),
+      level: analysis.status,
+      passed,
+    };
   };
 
   const handleToggleActive = (id: string, active: boolean) => {
@@ -442,6 +506,55 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
         </div>
       </div>
 
+      {/* Bulk Action Bar */}
+      {bulkSelected.size > 0 && (
+        <div
+          className="card"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            padding: '10px 16px',
+            background: 'rgba(99, 102, 241, 0.1)',
+            border: '1px solid var(--cf-accent)',
+            borderRadius: 8,
+            marginTop: 12,
+          }}
+        >
+          <div style={{ fontSize: 12, color: 'var(--cf-desc-fg)' }}>
+            {bulkSelected.size} {t('wcat.selectedCount')}
+          </div>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={handleBulkActivate}
+            style={{ padding: '4px 10px', fontSize: 11, borderColor: 'var(--cf-accent)', color: 'var(--cf-accent)' }}
+          >
+            {t('wcat.bulkActivate')}
+          </button>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={handleBulkDeactivate}
+            style={{ padding: '4px 10px', fontSize: 11, borderColor: 'var(--cf-border)', color: 'var(--cf-title-fg)' }}
+          >
+            {t('wcat.bulkDeactivate')}
+          </button>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={handleBulkReset}
+            style={{ padding: '4px 10px', fontSize: 11, color: '#ef4444', borderColor: '#ef4444' }}
+          >
+            {t('wcat.bulkReset')}
+          </button>
+          <button
+            className="btn btn-outline btn-sm"
+            onClick={() => setBulkSelected(new Set())}
+            style={{ padding: '4px 10px', fontSize: 11, marginLeft: 'auto' }}
+          >
+            {t('wcat.clearSelection')}
+          </button>
+        </div>
+      )}
+
       {/* Detailed Color Items List */}
       <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: 12 }}>
         {filteredColors.length === 0 ? (
@@ -466,9 +579,17 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  gap: 16,
+                  gap: 12,
+                  background: bulkSelected.has(colorDef.id) ? 'rgba(99, 102, 241, 0.1)' : 'inherit',
                 }}
+                onClick={(e) => { const tgt = e.target as HTMLElement; if (!tgt.closest('.color-controls') && !tgt.closest('.color-swatch-box') && !tgt.closest('input') && !tgt.closest('button')) handleBulkToggle(colorDef.id); }}
               >
+                <input
+                  type="checkbox"
+                  checked={bulkSelected.has(colorDef.id)}
+                  onChange={(e) => { e.stopPropagation(); handleBulkToggle(colorDef.id); }}
+                  style={{ width: 16, height: 16, marginRight: 6 }}
+                />
                 <div className="color-info" style={{ flex: 1 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                     <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--cf-title-fg)' }}>
@@ -495,6 +616,11 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
                     {!isActive && isCustomized && <span className="badge badge-info" style={{ fontSize: 9 }}>{t('wcat.inactiveBadge')}</span>}
                     {isStaged && <span className="badge badge-warning" style={{ fontSize: 9 }}>{t('wcat.draftBadge')}</span>}
                     {isCustomized && !isStaged && isActive && <span className="badge badge-success" style={{ fontSize: 9 }}>{t('wcat.activeOverrideBadge')}</span>}
+                    {currentColor && currentColor !== colorDef.defaultValue && (
+                      <span className="badge badge-info" style={{ fontSize: 8, marginLeft: 6 }}>
+                        {getContrastBadge(currentColor)?.ratio + ':1 ' + getContrastBadge(currentColor)?.level.toUpperCase()}
+                      </span>
+                    )}
                   </div>
 
                   <div style={{ fontFamily: 'var(--cf-font-mono)', fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>

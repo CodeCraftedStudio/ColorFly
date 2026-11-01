@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ColorFly: Main React Webview Application
  * Coordinates studio state, active themes, GUI settings, and RPC communication with Extension Host.
  */
@@ -31,6 +31,7 @@ import { ExportModal } from './components/common/ExportModal';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { SystemLogs } from './components/logs/SystemLogs';
 import { CheckIcon, CloseIcon } from './components/common/Icons';
+import { ToastContainer, useToast } from './components/common/Toast';
 import { addLog, mergeLogs, stringifyLogValue, useSystemLogs } from './logStore';
 
 const STORAGE_THEME_KEY = 'colorfly_gui_theme';
@@ -127,6 +128,61 @@ export const App: React.FC = () => {
   };
 
   const [showExportModal, setShowExportModal] = useState(false);
+
+  /* Toast notification state */
+  const { toasts, success, error, info, warning } = useToast();
+
+  const draftCount =
+    Object.keys(state.stagedColors).length +
+    Object.keys(state.stagedTokenColors).length +
+    (state.stagedTextMateRules?.length || 0) +
+    Object.keys(state.stagedSemanticTokens || {}).length;
+
+  const handleApply = () => {
+    sendToExtension({
+      type: 'APPLY_CUSTOMIZATIONS',
+      payload: { themeScoped: true },
+    });
+  };
+
+  const handleDiscardDrafts = () => {
+    sendToExtension({ type: 'DISCARD_DRAFTS' });
+  };
+
+  /* Keyboard shortcuts */
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    // Ctrl/Cmd + S → Apply customizations
+    if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+      e.preventDefault();
+      handleApply();
+      return;
+    }
+    // Ctrl/Cmd + Z → Undo / Discard drafts
+    if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+      e.preventDefault();
+      if (draftCount > 0) {
+        handleDiscardDrafts();
+      }
+      return;
+    }
+    // Ctrl/Cmd + D → Discard all drafts
+    if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+      e.preventDefault();
+      handleDiscardDrafts();
+      return;
+    }
+    // Ctrl/Cmd + / → Show keyboard shortcut help
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      info('Shortcuts: Ctrl+S Apply · Ctrl+Z Discard Drafts · Ctrl+D Discard All');
+      return;
+    }
+  }, [draftCount, handleApply, handleDiscardDrafts, info]);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
   const toastTimerRef = useRef<number | undefined>(undefined);
 
@@ -239,11 +295,6 @@ export const App: React.FC = () => {
   }, []);
 
   const activeProfile = state.savedProfiles.find((p) => p.id === state.activeProfileId);
-  const draftCount =
-    Object.keys(state.stagedColors).length +
-    Object.keys(state.stagedTokenColors).length +
-    (state.stagedTextMateRules?.length || 0) +
-    Object.keys(state.stagedSemanticTokens || {}).length;
 
   return (
     <LanguageContext.Provider value={{ lang, setting: languageSetting, setSetting: handleLanguageChange, t }}>
@@ -420,6 +471,10 @@ export const App: React.FC = () => {
           onClose={() => setShowExportModal(false)}
         />
       )}
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onDismiss={() => {}} />
+
     </div>
     </LanguageContext.Provider>
   );
