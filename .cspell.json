@@ -1,0 +1,40 @@
+{
+  "$schema": "https://cspell.org/manifest/cspell.json",
+  "version": "0.2",
+  "language": "en",
+  "words": [
+    "scanline",
+    "gridlines",
+    "RGBA",
+    "RRGGBB",
+    "RRGGBBAA",
+    "strikethrough",
+    "grayscale",
+    "WCAG",
+    "Achromatopsia",
+    "colorfly",
+    "recompiles",
+    "scaffolder",
+    "Bangla",
+    "Deuteranopia",
+    "Protanopia",
+    "Tritanopia",
+    "TextMate",
+    "VSCode",
+    "webview",
+    "VSIX",
+    "hex",
+    "hsla",
+    "ANSI",
+    "SCM",
+    "Quick Pick",
+    "Intellisense",
+    "autocompletion"
+  ],
+  "ignorePaths": [
+    "node_modules",
+    "dist",
+    "package-lock.json",
+    "colorfly-1.0.0.vsix"
+  ]
+}

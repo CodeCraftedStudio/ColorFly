@@ -1,10 +1,10 @@
-﻿# ColorFly â€” VS Code Theme Studio
+﻿# ColorFly — VS Code Theme Studio
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![VS Code Engine](https://img.shields.io/badge/VS%20Code-%5E1.85.0-007acc.svg)](https://code.visualstudio.com/)
-[![Tests](https://img.shields.io/badge/Tests-42%20Passed-10b981.svg)](tests/)
+[![Tests](https://img.shields.io/badge/Tests-65%20Passed-10b981.svg)](tests/)
 
-> **ColorFly** is a professional graphical theme customization studio, boxed clock widget, and color science environment integrated directly into Visual Studio Code. Customize workbench surfaces, syntax highlighting, and terminal colors with precision, inspect contrast ratios in real time, preview changes live, and generate installable theme extensions â€” all without manual JSON editing.
+> **ColorFly** is a professional graphical theme customization studio, boxed clock widget, and color science environment integrated directly into Visual Studio Code. Customize workbench surfaces, syntax highlighting, and terminal colors with precision, inspect contrast ratios in real time, preview changes live, and generate installable theme extensions — all without manual JSON editing.
 
 ---
 
@@ -14,11 +14,11 @@
 - **Custom Activity Bar Icon**: Clean, monochrome SVG prism icon conforming to VS Code Activity Bar ergonomics.
 - **Theme Studio Sidebar**: Mini-dashboard showing active theme status, applied override count, quick palette preview, starter preset switcher, and a prominent **"Open Theme Studio in Editor"** button.
 - **Full-Page Studio with 5 GUI Theme Modes**:
-  1. **ðŸ–¥ï¸ VS Code Native**: Inherits editor and workbench colors dynamically.
-  2. **ðŸŒ™ Studio Obsidian Dark**: Deep obsidian glass aesthetic with electric violet accents.
-  3. **â˜€ï¸ Studio Clean Light**: Modern porcelain daylight UI with crisp contrast and blue accents.
-  4. **âœï¸ Pencil Paper Theme**: Architectural draft graph paper texture, pencil charcoal typography, hand-drafted sketch borders, and draftsman aesthetics.
-  5. **âš¡ Animated Hacker Theme**: Glowing phosphor neon green typography, active animated CRT scanline sweep, cyber gridlines, and terminal vibes.
+  1. **🎨 VS Code Native**: Inherits editor and workbench colors dynamically.
+  2. **🌑 Studio Obsidian Dark**: Deep obsidian glass aesthetic with electric violet accents.
+  3. **☀️ Studio Clean Light**: Modern porcelain daylight UI with crisp contrast and blue accents.
+  4. **✏️ Pencil Paper Theme**: Architectural draft graph paper texture, pencil charcoal typography, hand-drafted sketch borders, and draftsman aesthetics.
+  5. **💻 Animated Hacker Theme**: Glowing phosphor neon green typography, active animated CRT scanline sweep, cyber gridlines, and terminal vibes.
 - **Dedicated GUI Settings Studio**: Configure GUI themes, layout density (Compact, Comfortable, Relaxed), base font size (12px, 13px, 14px), and animation effects with persistence.
 
 ### 2. Comprehensive Component Color Catalog
@@ -35,14 +35,22 @@
   10. Search, Source Control (Git decorations), and Debugging
   11. Notifications and Popups
   12. Badges, Scrollbars, and Breadcrumbs
+- **162 Isolated Color Setting Files**: Every workbench color setting has its own dedicated TypeScript component file under `src/webview/components/workbench/` (e.g. `editor_background.tsx`, `activityBar_foreground.tsx`), making per-feature bug fixes and maintenance fast and safe.
+- **Per-Color Active/Deactivate Toggle**: Each color row has a prominent Active/Deactivate button to enable or disable individual color overrides.
 - **Fast Global Search**: Filter by human-readable component name, exact official VS Code color ID (e.g. `editor.background`), or description.
 - **Filtering Options**: Toggle between All Properties, Customized Only, or Unmodified Only.
 
 ### 3. Advanced Color Studio & Harmonies
-- **Precision Color Picker**: Visual Hue, Saturation, Lightness, and Alpha/Opacity sliders.
+- **Precision Color Picker**: Visual Hue, Saturation, Lightness, and Alpha/Opacity sliders. Popup auto-clamps to viewport and flips above the anchor when near screen edges — never opens outside the layout boundary.
 - **Validated Input Formats**: Real-time validation and normalization for HEX (`#RGB`, `#RGBA`, `#RRGGBB`, `#RRGGBBAA`), RGB/RGBA, and HSL/HSLA.
 - **Algorithmic Harmonies**: Instantly generate Complementary, Analogous, Triadic, Monochromatic, and Neutral Dark Surface palettes derived from any seed color.
 - **Target Assignment**: Assign any generated harmony color to any workbench component in one click.
+
+### 3.5. Icon Library — Active/Deactivate per Icon
+- **Per-Icon Active/Deactivate Toggle**: Every icon in the Icon Library (308 VS Code icons) has its own Active/Deactivate button to enable or disable individual icons.
+- **Bulk Activate/Deactivate**: Select multiple icons and activate or deactivate them all at once.
+- **Select All / Deselect All**: Quick selection controls at the top of the icon table.
+- **Active Icons Summary**: Shows the count of currently active icons.
 
 ### 4. Syntax Highlighting Studio
 - **Core Token Categories**: Custom styling for Comments, Strings, Numbers, Keywords, Functions, Variables, Types, Classes, Constants, Operators, Punctuation, and Regular Expressions.
@@ -124,7 +132,7 @@ If you are developing or testing ColorFly locally:
 
 ## Test Verification
 
-The project includes 41 comprehensive automated unit tests covering:
+The project includes 65 comprehensive automated unit tests covering:
 - **Color Math & Conversions**: HEX (3, 4, 6, 8-digit), RGB, RGBA, HSL, HSLA, normalization, and floating-point drift prevention.
 - **WCAG 2.1 Contrast Calculations**: Relative luminance and AA/AAA compliance evaluation.
 - **Color Harmonies & Simulations**: Complementary, analogous, triadic, monochromatic, neutral surfaces, and color blindness perception matrices.
@@ -138,35 +146,60 @@ The project includes 41 comprehensive automated unit tests covering:
 
 ```
 ColorFly/
-â”œâ”€â”€ assets/
-â”‚   â”œâ”€â”€ icon.png                         # Extension icon (128x128)
-â”‚   â””â”€â”€ icons/
-â”‚       â””â”€â”€ ColorFly-activitybar.svg  # Monochrome Activity Bar SVG emblem
-â”œâ”€â”€ src/
-â”‚   â”œâ”€â”€ extension.ts                     # Extension activation & service bootstrap
-â”‚   â”œâ”€â”€ commands/                        # Command palette & toolbar action handlers
-â”‚   â”œâ”€â”€ panels/
-â”‚   â”‚   â””â”€â”€ ThemeStudioEditorPanel.ts   # WebviewPanel lifecycle, CSP, state sync
-â”‚   â”œâ”€â”€ views/
-â”‚   â”‚   â””â”€â”€ ThemeStudioSidebarProvider.ts# Activity Bar WebviewViewProvider
-â”‚   â”œâ”€â”€ services/
-â”‚   â”‚   â”œâ”€â”€ ConfigurationService.ts      # Safe VS Code settings reader & merger
-â”‚   â”‚   â”œâ”€â”€ ProfileService.ts            # Versioned profile storage & presets
-â”‚   â”‚   â”œâ”€â”€ RecoveryService.ts           # Undo/redo stack & pre-customization snapshot
-â”‚   â”‚   â””â”€â”€ ThemeExportService.ts        # Standalone theme JSON & extension scaffolder
-â”‚   â”œâ”€â”€ shared/
-â”‚   â”‚   â”œâ”€â”€ colorUtils.ts                # Pure color science & WCAG algorithms
-â”‚   â”‚   â”œâ”€â”€ officialWorkbenchColors.ts   # Official VS Code workbench color catalog
-â”‚   â”‚   â”œâ”€â”€ tokenColorCatalog.ts         # TextMate token scopes & semantic categories
-â”‚   â”‚   â”œâ”€â”€ starterPresets.ts            # 8 original theme preset configurations
-â”‚   â”‚   â””â”€â”€ types.ts                     # Shared RPC and model type definitions
-â”‚   â””â”€â”€ webview/                         # React 18 frontend studio
-â”‚       â”œâ”€â”€ App.tsx                      # Root application & state coordination
-â”‚       â”œâ”€â”€ index.tsx                    # React DOM mount entry
-â”‚       â”œâ”€â”€ vscodeApi.ts                 # Type-safe acquireVsCodeApi wrapper
-â”‚       â”œâ”€â”€ styles/app.css               # Responsive theme-adaptive styling
-â”‚       â””â”€â”€ components/                  # UI components across all 8 studio workspaces
-â””â”€â”€ tests/                               # 41 automated Vitest unit tests
+├── assets/
+│   ├── icon.png                         # Extension icon (128x128)
+│   └── icons/
+│       └── ColorFly-activitybar.svg     # Monochrome Activity Bar SVG emblem
+├── scripts/
+│   ├── generate-per-color-components.ts # Generates 162 per-color component files
+│   └── generate-registry.ts             # Auto-generates color component registry
+├── src/
+│   ├── extension.ts                     # Extension activation & service bootstrap
+│   ├── commands/                        # Command palette & toolbar action handlers
+│   ├── panels/
+│   │   └── ThemeStudioEditorPanel.ts    # WebviewPanel lifecycle, CSP, state sync
+│   ├── views/
+│   │   └── ThemeStudioSidebarProvider.ts# Activity Bar WebviewViewProvider
+│   ├── services/
+│   │   ├── ConfigurationService.ts      # Safe VS Code settings reader & merger
+│   │   ├── ProfileService.ts            # Versioned profile storage & presets
+│   │   ├── RecoveryService.ts           # Undo/redo stack & pre-customization snapshot
+│   │   └── ThemeExportService.ts        # Standalone theme JSON & extension scaffolder
+│   ├── shared/
+│   │   ├── colorUtils.ts                # Pure color science & WCAG algorithms
+│   │   ├── officialWorkbenchColors.ts   # Official VS Code workbench color catalog (162 colors)
+│   │   ├── tokenColorCatalog.ts         # TextMate token scopes & semantic categories
+│   │   ├── presets/                     # Individual starter preset files (8 total)
+│   │   │   ├── preset-midnight.ts
+│   │   │   ├── preset-deep-ocean.ts
+│   │   │   ├── preset-forest-terminal.ts
+│   │   │   ├── preset-warm-ember.ts
+│   │   │   ├── preset-soft-lavender.ts
+│   │   │   ├── preset-monochrome.ts
+│   │   │   ├── preset-minimal-light.ts
+│   │   │   └── preset-high-contrast.ts
+│   │   ├── starterPresets.ts            # Re-exports all presets as STARTER_PRESETS array
+│   │   └── types.ts                     # Shared RPC and model type definitions
+│   ├── en.ts                            # English i18n dictionary
+│   ├── bn.ts                            # Bangla i18n dictionary
+│   ├── hi.ts                            # Hindi i18n dictionary
+│   └── i18n.ts                          # i18n context, translation utilities
+│   └── webview/                         # React 18 frontend studio
+│       ├── App.tsx                      # Root application & state coordination
+│       ├── index.tsx                    # React DOM mount entry
+│       ├── vscodeApi.ts                 # Type-safe acquireVsCodeApi wrapper
+│       ├── styles/app.css               # Responsive theme-adaptive styling
+│       └── components/                  # UI components across all 8 studio workspaces
+│           ├── common/                  # Shared components (ColorInput, ColorPickerPopover, etc.)
+│           └── workbench/               # Workbench colors — 162 isolated per-color files
+│               ├── WorkbenchColorCatalog.tsx   # Main orchestrator (search, filters, bulk actions)
+│               ├── WorkbenchColorRow.tsx       # Shared row component (Active/Deactivate + ColorInput)
+│               ├── workbenchColorTypes.ts      # Shared types + CATEGORY_FEATURE_MAP
+│               ├── colorComponentRegistry.ts   # Maps 162 color IDs to their components
+│               ├── editor_background.tsx       # Per-color component (example)
+│               ├── activityBar_foreground.tsx  # Per-color component (example)
+│               └── ... (162 total per-color files)
+└── tests/                               # 65 automated Vitest unit tests
 ```
 
 ---

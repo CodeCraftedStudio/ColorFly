@@ -7,7 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { ColorScope } from '../../../shared/types';
 import { sendToExtension } from '../../vscodeApi';
 import { useLanguage } from '../../i18n';
-import { SunIcon, MoonIcon, SettingsIcon, CheckIcon, RefreshIcon, ExportIcon, ClockIcon } from './Icons';
+import { SunIcon, MoonIcon, SettingsIcon, RefreshIcon, ExportIcon, ClockIcon } from './Icons';
 import { ConfirmDialog } from './Dialog';
 
 export type GuiTheme = 'vscode-native' | 'dark' | 'light' | 'pencil-paper' | 'animated-hacker';
@@ -116,13 +116,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
     } else {
       onChangeGuiTheme('light');
     }
-  };
-
-  const handleApply = () => {
-    sendToExtension({
-      type: 'APPLY_CUSTOMIZATIONS',
-      payload: { themeScoped },
-    });
   };
 
   const handleDiscard = () => {
@@ -361,26 +354,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         >
           <ExportIcon size={13} />
           <span>{t('header.export')}</span>
-        </button>
-
-        {/* Primary CTA Apply Button */}
-        <button
-          className="btn btn-primary"
-          onClick={handleApply}
-          disabled={draftCount === 0}
-          title={draftCount === 0 ? t('header.applyDisabled') : t('header.applyTitle')}
-          style={{
-            padding: '7px 16px',
-            borderRadius: 6,
-            fontWeight: 700,
-            boxShadow: draftCount > 0 ? '0 0 14px rgba(99, 102, 241, 0.45)' : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 6,
-          }}
-        >
-          <CheckIcon size={14} />
-          <span>{t('header.apply')}</span>
         </button>
       </div>
 

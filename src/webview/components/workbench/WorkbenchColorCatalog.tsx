@@ -1,7 +1,9 @@
 /**
  * ColorFly: Workbench Colors Component Catalog
- * Ultra-detailed, categorical browsing with feature impact explanations,
- * location tags, global search, and bulk operations.
+ * Main orchestrator: search, filters, category navigation, bulk actions.
+ * Each of the 162 color settings has its own dedicated component file
+ * (in src/webview/components/workbench/*.tsx) registered in colorComponentRegistry.ts.
+ * Per-feature row rendering is delegated to WorkbenchColorRow.
  */
 
 import React, { useState, useMemo, useEffect } from 'react';
@@ -10,142 +12,22 @@ import {
   WORKBENCH_CATEGORIES,
 } from '../../../shared/officialWorkbenchColors';
 import { WorkbenchCategory } from '../../../shared/types';
-import { adjustLightness, invertColor, analyzeContrast } from '../../../shared/colorUtils';
+import { adjustLightness, invertColor } from '../../../shared/colorUtils';
 import { ColorInput } from '../common/ColorInput';
 import { sendToExtension } from '../../vscodeApi';
-import { SearchIcon, CloseIcon, CopyIcon, SparklesIcon, RefreshIcon, SlidersIcon, StarIcon } from '../common/Icons';
+import { SearchIcon, CloseIcon } from '../common/Icons';
 import { ConfirmDialog } from '../common/Dialog';
-import { Localized, useLanguage } from '../../i18n';
+import { useLanguage } from '../../i18n';
 import { useToast } from '../common/Toast';
+import { WorkbenchColorRow } from './WorkbenchColorRow';
+import { COLOR_COMPONENTS, type ColorComponentMap } from './colorComponentRegistry';
+import { CATEGORY_FEATURE_MAP } from './workbenchColorTypes';
 
 interface WorkbenchColorCatalogProps {
   effectiveColors: Record<string, string>;
   stagedColors: Record<string, string>;
   initialCategory?: WorkbenchCategory | 'all';
 }
-
-const CATEGORY_FEATURE_MAP: Record<string, { label: string; location: string; impact: Localized; icon: string }> = {
-  activityBar: {
-    label: 'Navigation Activity Bar',
-    location: 'Left Vertical Column',
-    impact: {
-      en: 'The vertical icon bar on the far left used to open Explorer, Search, and Source Control.',
-      bn: 'একেবারে বাম পাশের খাড়া আইকন বার, যা দিয়ে ফাইল এক্সপ্লোরার, সার্চ ও গিট খোলা হয়।',
-      hi: 'बाएँ किनारे का खड़ा आइकन बार जिससे एक्सप्लोरर, खोज और सोर्स कंट्रोल खोले जाते हैं।',
-    },
-    icon: '📍 Left Icon Bar',
-  },
-  sideBar: {
-    label: 'Primary Sidebar',
-    location: 'Left Collapsible Container',
-    impact: {
-      en: 'The main panel on the left listing files (Explorer), search results, and git changes.',
-      bn: 'বাম পাশের মেইন প্যানেল যাতে ফাইল লিস্ট (Explorer), সার্চ রেজাল্ট ও গিট চেঞ্জেস থাকে।',
-      hi: 'बाएँ ओर का मुख्य पैनल जिसमें फ़ाइल सूची (एक्सप्लोरर), खोज परिणाम और गिट परिवर्तन होते हैं।',
-    },
-    icon: '📍 Primary Sidebar',
-  },
-  editor: {
-    label: 'Code Editor Canvas',
-    location: 'Main Workspace',
-    impact: {
-      en: 'The main code writing canvas with cursor, line numbers, and code highlights.',
-      bn: 'প্রধান কোড লেখার ক্যানভাস, কার্সর, লাইন নম্বর, এবং কোড হাইলাইটস।',
-      hi: 'कर्सर, लाइन नंबर और कोड हाइलाइट सहित मुख्य कोड लेखन कैनवास।',
-    },
-    icon: '📍 Editor Canvas',
-  },
-  tabsAndTitle: {
-    label: 'Tabs & Title Bar',
-    location: 'Top Window & Headers',
-    impact: {
-      en: 'The header bar at the very top of the window and the tabs of open files.',
-      bn: 'উইন্ডোর সবচেয়ে উপরের হেডার বার এবং ওপেন থাকা ফাইলের ট্যাবসমূহ।',
-      hi: 'विंडो के सबसे ऊपर का हेडर बार और खुली फ़ाइलों की टैब।',
-    },
-    icon: '📍 Window Header & Tabs',
-  },
-  statusBar: {
-    label: 'Status Bar',
-    location: 'Bottom Horizontal Strip',
-    impact: {
-      en: 'The colored bar at the very bottom showing git branch name, error count, and status info.',
-      bn: 'একেবারে নিচের রঙিন বার যাতে গিট ব্রাঞ্চ নাম, এরর কাউন্ট, ও স্ট্যাটাস থাকে।',
-      hi: 'सबसे नीचे की रंगीन बार जिसमें गिट ब्रांच नाम, त्रुटि काउंट और स्थिति होती है।',
-    },
-    icon: '📍 Bottom Status Line',
-  },
-  panel: {
-    label: 'Panel Surface',
-    location: 'Bottom / Side Container',
-    impact: {
-      en: 'The large bottom panel containing Output, Problems, and the terminal.',
-      bn: 'আউটপুট, প্রবলেমস এবং টার্মিনাল ধারণকারী নিচের বড় প্যানেলটি।',
-      hi: 'आउटपुट, समस्याओं और टर्मिनल वाला बड़ा नीचे का पैनल।',
-    },
-    icon: '📍 Bottom Panel',
-  },
-  terminal: {
-    label: 'Integrated Terminal',
-    location: 'Console Surface & Colors',
-    impact: {
-      en: 'The integrated terminal console where npm, git, and other commands run.',
-      bn: 'ইন্টিগ্রেটেড টার্মিনাল কনসোল যেখানে npm, git কমান্ড ইত্যাদি রান করা হয়।',
-      hi: 'इंटीग्रेटेड टर्मिनल कंसोल जहाँ npm, git आदि कमांड चलते हैं।',
-    },
-    icon: '📍 Embedded CLI Shell',
-  },
-  buttonsAndInputs: {
-    label: 'Buttons & Inputs',
-    location: 'UI Controls',
-    impact: {
-      en: 'Form buttons, text input boxes, dropdowns, and check controls.',
-      bn: 'ফর্মের বাটন, টেক্সট ইনপুট বক্স, ড্রপডাউন এবং চেককন্ট্রোল।',
-      hi: 'फ़ॉर्म के बटन, टेक्स्ट इनपुट बॉक्स, ड्रॉपडाउन और चेक नियंत्रण।',
-    },
-    icon: '📍 UI Controls & Forms',
-  },
-  listsAndTrees: {
-    label: 'Lists, Trees & Menus',
-    location: 'Tree Items & Popups',
-    impact: {
-      en: 'File tree rows, menus, and command palette list items.',
-      bn: 'ফাইল ট্রির রো, মেনু এবং কমান্ড প্যালেটের লিস্ট আইটেম।',
-      hi: 'फ़ाइल ट्री पंक्तियाँ, मेनू और कमांड पैलेट की सूची आइटम।',
-    },
-    icon: '📍 Lists & Context Menus',
-  },
-  searchAndDebug: {
-    label: 'Search, Git & Debug',
-    location: 'Tool Highlights',
-    impact: {
-      en: 'Search match highlights, git change markers, and the debug toolbar.',
-      bn: 'সার্চ ম্যাচ হাইলাইটস, গিট চেঞ্জ মার্কার এবং ডিবাগ টুলবার।',
-      hi: 'खोज मैच हाइलाइट, गिट परिवर्तन मार्कर और डीबग टूलबार।',
-    },
-    icon: '📍 Search & Debugging',
-  },
-  notifications: {
-    label: 'Notifications & Popups',
-    location: 'Alert Toasts',
-    impact: {
-      en: 'Notification popups and toast alert messages.',
-      bn: 'নোটিফিকেশন পপআপ এবং টোস্ট অ্যালার্ট ম্যাসেজ।',
-      hi: 'सूचना पॉपअप और टोस्ट अलर्ट संदेश।',
-    },
-    icon: '📍 Popups & Notifications',
-  },
-  other: {
-    label: 'Other Components',
-    location: 'System Elements',
-    impact: {
-      en: 'Scrollbars, breadcrumbs, and progress bars.',
-      bn: 'স্ক্রলবার, ব্রেডক্রাম্বস এবং প্রগ্রেস বার।',
-      hi: 'स्क्रॉलबार, ब्रेडक्रम्ब्स और प्रगति बार।',
-    },
-    icon: '📍 System Elements',
-  },
-};
 
 export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
   effectiveColors = {},
@@ -183,17 +65,12 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
 
   const filteredColors = useMemo(() => {
     return OFFICIAL_WORKBENCH_COLORS.filter((item) => {
-      // 1. Category check
       if (selectedCategory !== 'all' && item.category !== selectedCategory) {
         return false;
       }
-
-      // 2. Customization filter
       const isCustomized = mergedColors[item.id] !== undefined;
       if (filterType === 'customized' && !isCustomized) return false;
       if (filterType === 'unmodified' && isCustomized) return false;
-
-      // 3. Search query check
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         const matchesName = item.name.toLowerCase().includes(query);
@@ -203,11 +80,11 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
         const matchesCategory = catMeta ? (catMeta.label.toLowerCase().includes(query) || catMeta.location.toLowerCase().includes(query)) : false;
         return matchesName || matchesId || matchesDesc || matchesCategory;
       }
-
       return true;
     });
   }, [selectedCategory, filterType, searchQuery, mergedColors]);
 
+  /* Individual color handlers */
   const handleColorChange = (id: string, value: string) => {
     sendToExtension({
       type: 'STAGE_COLOR_CHANGE',
@@ -222,8 +99,26 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
     });
   };
 
+  const handleToggleActive = (id: string, active: boolean) => {
+    setActiveColors((prev) => ({ ...prev, [id]: active }));
+    if (active) {
+      const cur = mergedColors[id];
+      if (cur) {
+        sendToExtension({
+          type: 'STAGE_COLOR_CHANGE',
+          payload: { id, value: cur },
+        });
+      }
+    } else {
+      sendToExtension({
+        type: 'RESET_COLOR',
+        payload: { id },
+      });
+    }
+  };
+
   /* Bulk selection */
-  const handleBulkToggle = (id: string) => {
+  const handleSelectThis = (id: string) => {
     setBulkSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -232,13 +127,17 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
     });
   };
 
-  const handleBulkSelectAll = () => {
+  const handleSelectAll = () => {
     const allIds = filteredColors.map((c) => c.id);
     if (bulkSelected.size === allIds.length) {
       setBulkSelected(new Set());
     } else {
       setBulkSelected(new Set(allIds));
     }
+  };
+
+  const handleSelectNone = () => {
+    setBulkSelected(new Set());
   };
 
   const handleBulkReset = () => {
@@ -268,39 +167,6 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
     }
     setBulkSelected(new Set());
     success?.('Bulk deactivate completed');
-  };
-
-  /* Contrast ratio for a color row (fg vs editor background) */
-  const getContrastBadge = (bgColor: string) => {
-    const fg = '#ffffff';
-    const analysis = analyzeContrast(fg, bgColor);
-    if (!analysis) return null;
-    const passed = analysis.aaNormal;
-    return {
-      ratio: analysis.ratio.toFixed(2),
-      level: analysis.status,
-      passed,
-    };
-  };
-
-  const handleToggleActive = (id: string, active: boolean) => {
-    setActiveColors((prev) => ({ ...prev, [id]: active }));
-    if (active) {
-      // Re-stage the current effective color so it gets applied again
-      const cur = mergedColors[id];
-      if (cur) {
-        sendToExtension({
-          type: 'STAGE_COLOR_CHANGE',
-          payload: { id, value: cur },
-        });
-      }
-    } else {
-      // Remove this color override from applied customizations
-      sendToExtension({
-        type: 'RESET_COLOR',
-        payload: { id },
-      });
-    }
   };
 
   const handleResetCategory = (category: WorkbenchCategory) => {
@@ -339,6 +205,33 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
   };
 
   const activeCategoryMeta = selectedCategory !== 'all' ? CATEGORY_FEATURE_MAP[selectedCategory] : null;
+
+  // Group filtered colors by category for per-category rendering
+  const colorsByCategory = useMemo(() => {
+    const grouped: Record<string, typeof filteredColors> = {};
+    for (const color of filteredColors) {
+      if (!grouped[color.category]) grouped[color.category] = [];
+      grouped[color.category].push(color);
+    }
+    return grouped;
+  }, [filteredColors]);
+
+  // Props shared with every color component
+  const colorProps = {
+    mergedColors,
+    stagedColors,
+    activeColors,
+    bulkSelected,
+    onSelectThis: handleSelectThis,
+    onSelectAll: handleSelectAll,
+    onSelectNone: handleSelectNone,
+    onColorChange: handleColorChange,
+    onReset: handleResetProperty,
+    onToggleActive: handleToggleActive,
+    t,
+    lang,
+    success,
+  };
 
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 18 }}>
@@ -418,79 +311,6 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
         </div>
       </div>
 
-      {/* Feature Guide Banner (Shown when a specific category is selected) */}
-      {activeCategoryMeta && (
-        <div
-          className="card"
-          style={{
-            padding: '12px 16px',
-            borderRadius: 10,
-            background: 'rgba(99, 102, 241, 0.05)',
-            border: '1px solid rgba(99, 102, 241, 0.25)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 12,
-          }}
-        >
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--cf-accent)', textTransform: 'uppercase', letterSpacing: 0.5 }}>
-                {activeCategoryMeta.icon}
-              </span>
-              <span style={{ fontSize: 12, color: 'var(--cf-title-fg)', fontWeight: 600 }}>
-                {activeCategoryMeta.label} ({activeCategoryMeta.location})
-              </span>
-            </div>
-            <div style={{ fontSize: 12, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-              💡 <strong>{t('wcat.whatChanges')}</strong> {activeCategoryMeta.impact[lang]}
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleBulkAdjustLightness(selectedCategory as WorkbenchCategory, 10)}
-              title="Brighten all colors in this category by 10%"
-            >
-              {t('wcat.lighten')}
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleBulkAdjustLightness(selectedCategory as WorkbenchCategory, -10)}
-              title="Darken all colors in this category by 10%"
-            >
-              {t('wcat.darken')}
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleBulkInvert(selectedCategory as WorkbenchCategory)}
-              title="Invert color tones in this category"
-            >
-              {t('wcat.invert')}
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleCopyCategoryJson(selectedCategory as WorkbenchCategory)}
-              title="Copy category colors as JSON"
-            >
-              <CopyIcon size={12} />
-              <span>{t('wcat.copyJson')}</span>
-            </button>
-            <button
-              className="btn btn-outline btn-sm"
-              onClick={() => handleResetCategory(selectedCategory as WorkbenchCategory)}
-              style={{ color: '#ef4444' }}
-              title="Reset all colors in this category"
-            >
-              <RefreshIcon size={12} />
-              <span>{t('wcat.reset')}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* Results Header Status */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 4px', flexWrap: 'wrap', gap: 8 }}>
         <div style={{ fontSize: 12, color: 'var(--cf-desc-fg)' }}>
@@ -503,6 +323,32 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
           {copyStatus && (
             <span style={{ color: '#16a34a', marginLeft: 10, fontWeight: 600 }}>✓ {copyStatus}</span>
           )}
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button
+              onClick={handleSelectAll}
+              className="btn btn-outline btn-sm"
+              style={{
+                padding: '4px 10px',
+                fontSize: 11,
+                borderColor: 'var(--cf-accent)',
+                color: 'var(--cf-accent)',
+              }}
+            >
+              Select All
+            </button>
+            <button
+              onClick={handleSelectNone}
+              className="btn btn-outline btn-sm"
+              style={{
+                padding: '4px 10px',
+                fontSize: 11,
+                borderColor: 'var(--cf-border)',
+                color: 'var(--cf-title-fg)',
+              }}
+            >
+              Select None
+            </button>
+          </div>
         </div>
       </div>
 
@@ -555,97 +401,34 @@ export const WorkbenchColorCatalog: React.FC<WorkbenchColorCatalogProps> = ({
         </div>
       )}
 
-      {/* Detailed Color Items List */}
+      {/* Detailed Color Items List - each color uses its own dedicated component */}
       <div className="card" style={{ padding: 0, overflow: 'hidden', borderRadius: 12 }}>
         {filteredColors.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: 'var(--cf-desc-fg)' }}>
             {t('wcat.noResults')}
           </div>
-        ) : (
-          filteredColors.map((colorDef) => {
-            const currentColor = mergedColors[colorDef.id] || colorDef.defaultValue || '#1e1e1e';
-            const isCustomized = mergedColors[colorDef.id] !== undefined;
-            const isStaged = stagedColors[colorDef.id] !== undefined;
-            const isActive = activeColors[colorDef.id] !== false;
-            const catMeta = CATEGORY_FEATURE_MAP[colorDef.category];
-
+        ) : selectedCategory !== 'all' ? (
+          // Single category view: render each color with its dedicated component
+          colorsByCategory[selectedCategory]?.map((colorDef) => {
+            const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
             return (
-              <div
+              <ColorComponent
                 key={colorDef.id}
-                className="color-row"
-                style={{
-                  padding: '12px 18px',
-                  borderBottom: '1px solid var(--cf-border)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  background: bulkSelected.has(colorDef.id) ? 'rgba(99, 102, 241, 0.1)' : 'inherit',
-                }}
-                onClick={(e) => { const tgt = e.target as HTMLElement; if (!tgt.closest('.color-controls') && !tgt.closest('.color-swatch-box') && !tgt.closest('input') && !tgt.closest('button')) handleBulkToggle(colorDef.id); }}
-              >
-                <input
-                  type="checkbox"
-                  checked={bulkSelected.has(colorDef.id)}
-                  onChange={(e) => { e.stopPropagation(); handleBulkToggle(colorDef.id); }}
-                  style={{ width: 16, height: 16, marginRight: 6 }}
-                />
-                <div className="color-info" style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                    <span style={{ fontWeight: 700, fontSize: 13, color: 'var(--cf-title-fg)' }}>
-                      {colorDef.name}
-                    </span>
-
-                    {/* Feature Location Pill */}
-                    {catMeta && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          fontWeight: 600,
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          background: 'var(--cf-input-bg)',
-                          border: '1px solid var(--cf-border)',
-                          color: 'var(--cf-desc-fg)',
-                        }}
-                      >
-                        {catMeta.icon}
-                      </span>
-                    )}
-
-                    {!isActive && isCustomized && <span className="badge badge-info" style={{ fontSize: 9 }}>{t('wcat.inactiveBadge')}</span>}
-                    {isStaged && <span className="badge badge-warning" style={{ fontSize: 9 }}>{t('wcat.draftBadge')}</span>}
-                    {isCustomized && !isStaged && isActive && <span className="badge badge-success" style={{ fontSize: 9 }}>{t('wcat.activeOverrideBadge')}</span>}
-                    {currentColor && currentColor !== colorDef.defaultValue && (
-                      <span className="badge badge-info" style={{ fontSize: 8, marginLeft: 6 }}>
-                        {getContrastBadge(currentColor)?.ratio + ':1 ' + getContrastBadge(currentColor)?.level.toUpperCase()}
-                      </span>
-                    )}
-                  </div>
-
-                  <div style={{ fontFamily: 'var(--cf-font-mono)', fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 2 }}>
-                    {colorDef.id}
-                  </div>
-
-                  {/* Impact detail */}
-                  <div style={{ fontSize: 11, color: 'var(--cf-desc-fg)', marginTop: 3, lineHeight: 1.4 }}>
-                    {colorDef.description}
-                  </div>
-                </div>
-
-                <div className="color-controls" style={{ flexShrink: 0 }}>
-                  <ColorInput
-                    colorId={colorDef.id}
-                    value={currentColor}
-                    defaultValue={colorDef.defaultValue}
-                    isCustomized={isCustomized}
-                    isActive={isActive}
-                    onChange={(val) => handleColorChange(colorDef.id, val)}
-                    onReset={() => handleResetProperty(colorDef.id)}
-                    onToggleActive={(active) => handleToggleActive(colorDef.id, active)}
-                  />
-                </div>
-              </div>
+                {...colorProps}
+                catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
+              />
+            );
+          })
+        ) : (
+          // "All" view: render each color with its dedicated component
+          filteredColors.map((colorDef) => {
+            const ColorComponent = COLOR_COMPONENTS[colorDef.id] || WorkbenchColorRow;
+            return (
+              <ColorComponent
+                key={colorDef.id}
+                {...colorProps}
+                catMeta={CATEGORY_FEATURE_MAP[colorDef.category]}
+              />
             );
           })
         )}
