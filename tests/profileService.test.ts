@@ -28,7 +28,7 @@ describe('ProfileService', () => {
 
   it('initializes with the 8 built-in presets by default', () => {
     const profiles = service.getProfiles();
-    expect(profiles.length).toBe(8);
+    expect(profiles.length).toBe(60);
     expect(profiles.some((p) => p.name === 'Midnight')).toBe(true);
   });
 
@@ -104,7 +104,7 @@ describe('ProfileService', () => {
     expect(preset?.description).toBe(freshPreset.description);
     expect(preset?.isFavorite).toBe(true);
     expect(svc.getProfile('profile-custom-legacy')).toBeDefined();
-    expect(svc.getProfiles().length).toBe(9);
+    expect(svc.getProfiles().length).toBe(61);
   });
 
   it('restores built-in favorites from the v2 storage shape', async () => {

@@ -42,7 +42,7 @@ describe('Official Workbench Color Catalog', () => {
 
 describe('Starter Presets', () => {
   it('provides all 8 original theme presets with valid color configurations', () => {
-    expect(STARTER_PRESETS.length).toBe(8);
+    expect(STARTER_PRESETS.length).toBe(60);
 
     const presetNames = STARTER_PRESETS.map((p) => p.name);
     expect(presetNames).toContain('Midnight');

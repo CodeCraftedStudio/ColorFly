@@ -169,7 +169,7 @@ ColorFly/
 │   │   ├── colorUtils.ts                # Pure color science & WCAG algorithms
 │   │   ├── officialWorkbenchColors.ts   # Official VS Code workbench color catalog (162 colors)
 │   │   ├── tokenColorCatalog.ts         # TextMate token scopes & semantic categories
-│   │   ├── presets/                     # Individual starter preset files (8 total)
+│   │   ├── presets/                     # Individual starter preset files (60 total)
 │   │   │   ├── preset-midnight.ts
 │   │   │   ├── preset-deep-ocean.ts
 │   │   │   ├── preset-forest-terminal.ts
@@ -177,7 +177,8 @@ ColorFly/
 │   │   │   ├── preset-soft-lavender.ts
 │   │   │   ├── preset-monochrome.ts
 │   │   │   ├── preset-minimal-light.ts
-│   │   │   └── preset-high-contrast.ts
+│   │   │   ├── preset-high-contrast.ts
+│   │   │   └── preset-custom-1.ts through preset-custom-52.ts
 │   │   ├── starterPresets.ts            # Re-exports all presets as STARTER_PRESETS array
 │   │   └── types.ts                     # Shared RPC and model type definitions
 │   ├── en.ts                            # English i18n dictionary
